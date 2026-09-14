@@ -1,0 +1,270 @@
+ShopVN — E-commerce Fullstack (Next.js + Express + PostgreSQL + Prisma)
+BẢN DỰNG #12  ·   14/09/2026
+======================================================================
+
+⚠️  CÁCH KIỂM TRA BẠN CÓ ĐANG DÙNG GÓI CŨ HAY KHÔNG
+    Trong thư mục gốc dự án, phải có ĐỦ các file/dòng dưới đây:
+
+      [ ] HUONG-DAN-SETUP.md               <- HƯỚNG DẪN CHÍNH THỨC (đọc theo file này)
+      [ ] BAT-DAU-O-DAY.md                 <- bản tóm tắt nhanh + bảng lỗi
+      [ ] BUILD-INFO.txt                   <- chính là file bạn đang đọc
+      [ ] setup-windows.cmd                <- cài đặt trên Windows (nháy đúp)
+      [ ] setup-windows.ps1
+      [ ] setup-gitbash.sh                 <- cài đặt bằng Git Bash / WSL / macOS
+      [ ] start-all.cmd                    <- bật cả hệ thống (nháy đúp)
+      [ ] start-all.sh                     <- bật cả hệ thống bằng Git Bash
+      [ ] backend/scripts/bootstrap-env.mjs
+      [ ] backend/scripts/doctor.mjs
+      [ ] VSCODE.md                        <- hướng dẫn chạy bằng VS Code
+      [ ] chan-doan.cmd                    <- chẩn đoán khi web không mở lên
+      [ ] stop-all.sh / stop-all.cmd       <- TẮT sạch API + web (1 lệnh)
+      [ ] xem-log.sh                       <- xem log đang chạy
+      [ ] backend/scripts/db-check.mjs     <- kiểm tra database có dữ liệu chưa
+      [ ] kiem-tra.sh / kiem-tra.cmd       <- TỰ KIỂM TRA 29 mục (API, đăng nhập, 14 trang)
+      [ ] backend/scripts/kiem-tra.mjs     <- phần thân của script tự kiểm tra
+      [ ] backend/scripts/predev.mjs       <- tự kiểm tra trước khi chạy API
+      [ ] frontend/scripts/predev.mjs      <- tự kiểm tra trước khi chạy web
+      [ ] .vscode/tasks.json               <- 22 task cho VS Code
+      [ ] frontend/src/hooks/useCategories.ts   <- MỚI: sửa lỗi bấm Danh mục bị trắng trang
+      [ ] frontend/public/img/products/         <- MỚI: ảnh sản phẩm thật (10 ảnh)
+      [ ] frontend/public/img/hero-bg.jpg       <- MỚI: ảnh nền trang chủ
+      [ ] DEMO-10-PHUT.md                       <- MỚI: kịch bản demo 10 phút + 20 câu hỏi bảo vệ
+      [ ] frontend/src/app/terms/page.tsx       <- MỚI: trang Điều khoản sử dụng
+      [ ] frontend/src/app/privacy/page.tsx     <- MỚI: trang Chính sách bảo mật
+
+    Thiếu bất kỳ mục nào => bạn đang dùng zip CŨ. Hãy tải lại zip mới rồi
+    giải nén ĐÈ lên (hoặc xoá thư mục cũ trước cho sạch).
+
+    Kiểm tra nhanh bằng 1 lệnh (Git Bash):
+      ls BAT-DAU-O-DAY.md start-all.cmd setup-gitbash.sh backend/scripts/doctor.mjs
+
+    Kiểm tra tự động:
+      cd backend && npm run doctor     # mục "1/6 Gói cài đặt" sẽ báo nếu thiếu
+
+======================================================================
+BẢN DỰNG NÀY CÓ GÌ MỚI
+======================================================================
+
+#12 (14/09/2026)  <-- BẢN LÀM ĐẸP GIAO DIỆN + SỬA LỖI TRANG QUẢN TRỊ
+  ★ SỬA LỖI: vào trang quản trị, bấm "Sản phẩm" hoặc "Danh mục" bị trắng trang / báo
+        "Application error".
+    NGUYÊN NHÂN: dữ liệu danh mục được lưu vào bộ nhớ tạm dưới HAI khoá khác nhau
+        nhưng cùng tên ['categories'] — chỗ nhận về mảng, chỗ nhận về object
+        { data: [...] } ⇒ hàm .map() gọi trên object ⇒ TypeError.
+    ĐÃ SỬA: tách ra hook dùng chung frontend/src/hooks/useCategories.ts — MỘT khoá
+        duy nhất, LUÔN trả về mảng Category[]; cả 5 chỗ (trang chủ, /products,
+        /admin/products, /admin/products/[slug], Header) đều dùng hook này.
+    ĐÃ KIỂM CHỨNG: kịch bản tự động BẤM CHUỘT THẬT 10 bước (vào Sản phẩm, Danh mục,
+        gõ tìm kiếm, đổi bộ lọc Trạng thái/Danh mục, mở Thêm sản phẩm, mở Sửa,
+        mở Xem chi tiết) → 10/10 bước SẠCH, không còn lỗi nào.
+        Đồng thời quét tự động 15 trang (10 trang quản trị + 5 trang khách) → tất cả sạch.
+
+  ★ GIAO DIỆN ĐƯỢC LÀM LẠI (có hiệu ứng trang trí + ảnh nền):
+        · Trang chủ: khối hero mới có ẢNH NỀN (img/hero-bg.jpg) + lớp phủ gradient +
+          lưới kỹ thuật + 2 vệt sáng chuyển động (aurora), thẻ thống kê 20+/1.2k+/4.9,
+          thẻ "Bộ sưu tập mới" nền kính (glass) có huy hiệu -40% và QR nhấp nhô.
+        · Dải chữ chạy (marquee) ngay dưới hero + 4 thẻ cam kết (giao nhanh, QR,
+          bảo mật, chính hãng) có hiệu ứng nâng lên khi rê chuột.
+        · Tiêu đề các mục có vạch gradient; khối "Thanh toán QR" dùng nền
+          img/pattern-tech.jpg; thêm dải đăng ký nhận ưu đãi (nền img/cta-bg.jpg,
+          bấm gửi hiện thông báo toast).
+        · Trang đăng nhập/đăng ký: cột bên trái dùng img/auth-bg.jpg + lưới + vệt sáng.
+        · Footer và thanh menu trang quản trị: nền lưới tối (bg-grid-dark) + đường
+          gradient phân cách; thẻ "Mẹo quản trị" có bóng đổ.
+        · Logo: thay emoji 🛍️ (hiển thị thành ô vuông trên máy thiếu font emoji)
+          bằng icon vector ShoppingBag. TOÀN BỘ emoji trong giao diện đã được thay
+          bằng icon vector (dải chạy, thanh thông báo trên cùng, giỏ hàng...) ⇒
+          không còn ô vuông lỗi font trên bất kỳ máy nào.
+
+  ★ ẢNH SẢN PHẨM THẬT, LƯU NGAY TRONG DỰ ÁN (không phụ thuộc internet):
+        · 6 ảnh chụp sản phẩm (điện thoại ×2, laptop ×2, tai nghe/loa ×2) và
+          4 hình vector phong cách studio (đồng hồ, gia dụng, phụ kiện ×2)
+          nằm trong frontend/public/img/products/.
+        · Trước đây ảnh sản phẩm lấy từ picsum.photos (ảnh phong cảnh ngẫu nhiên,
+          mạng chậm là trắng ảnh) ⇒ nay đã thay hết bằng ảnh trong dự án.
+        · backend/prisma/seed.ts nay dùng ảnh nội bộ và khi chạy lại `npm run seed`
+          sẽ TỰ CẬP NHẬT ảnh mới cho sản phẩm/danh mục/dòng đơn hàng cũ
+          (không xoá đơn hàng đang có).
+
+  ★ CONSOLE SẠCH: khách chưa đăng nhập không còn 2 lỗi đỏ 401 (auth/me, auth/refresh)
+        xuất hiện ở MỌI trang. Nay chỉ gọi kiểm tra đăng nhập khi máy từng đăng nhập
+        (cờ lưu trong localStorage, KHÔNG chứa token nên không ảnh hưởng bảo mật).
+
+  ★ TỆP MỚI/ĐÃ SỬA ĐÁNG CHÚ Ý:
+        · frontend/src/hooks/useCategories.ts        (mới — sửa lỗi trang quản trị)
+        · frontend/src/app/page.tsx                  (hero, marquee, cam kết, ưu đãi)
+        · frontend/src/components/layout/Header.tsx  (icon hóa thanh trên + logo)
+        · frontend/src/components/layout/Footer.tsx  (nền lưới + logo)
+        · frontend/src/components/auth/AuthShell.tsx (ảnh nền + logo)
+        · frontend/src/app/admin/layout.tsx          (trang trí thanh menu quản trị)
+        · frontend/src/store/auth.store.ts           (bỏ 401 thừa)
+        · frontend/public/img/*.jpg, img/products/*  (ảnh nền + ảnh sản phẩm)
+        · backend/prisma/seed.ts                     (ảnh nội bộ, cập nhật không mất đơn)
+
+★ ẢNH SẢN PHẨM THẬT + TÀI LIỆU DEMO (bổ sung cuối của #12) ★
+  • 16 ẢNH SẢN PHẨM STUDIO nằm trong frontend/public/img/products/ — mỗi sản phẩm
+    (20/20) được gán ĐÚNG ảnh theo chủng loại, không còn hình minh hoạ tạm:
+        phone-1/2/3 · laptop-1/2 · audio-1/2 · watch-1/2 · home-1/2 · accessory-1..5
+    Ảnh đã được CHUẨN HOÁ: 1000×1000, baseline JPEG có header JFIF, giảm 1.483 KB → 1.090 KB.
+    (Lý do: ảnh gốc do AI sinh thiếu header JFIF nên bộ tối ưu ảnh của Next.js trả 400
+     → ảnh không hiển thị. Đã sửa và kiểm tra 16 ảnh × 7 kích thước = 112 lượt, 0 lỗi.)
+  • backend/prisma/seed.ts: ảnh chính xác theo TÊN sản phẩm (PRODUCT_IMG_BY_NAME) +
+    ảnh xem thêm cùng danh mục; chạy lại `npm run seed` vẫn cập nhật ảnh KHÔNG mất đơn.
+  • SỬA LỖI GIỚI HẠN TẦN SUẤT LÀM CHẾT WEBSITE KHI DEMO:
+    khi web gọi API qua proxy của Next.js, MỌI người truy cập mang cùng 1 IP ⇒ ngưỡng cũ
+    300 request/15 phút bị dùng chung cả website → chỉ cần xem vài trang là bị 429.
+    ĐÃ SỬA: ngưỡng đưa ra biến môi trường (RATE_LIMIT_WINDOW_MIN / RATE_LIMIT_MAX /
+    RATE_LIMIT_LOGIN_MAX) và thêm TRUST_PROXY để lấy IP thật qua X-Forwarded-For
+    (chỉ bật khi API không lộ trực tiếp ra internet). Đã kiểm chứng: 2 IP khác nhau có
+    hạn mức riêng, 30 request liên tục đều 200.
+  • MỚI: DEMO-10-PHUT.md — tài liệu chuẩn bị DEMO & BẢO VỆ đồ án, gồm:
+      checklist 15 phút trước khi demo · kịch bản 10 phút chia theo từng phút (bấm gì,
+      nói gì) · 8 phương án dự phòng khi có sự cố · 20 câu hỏi thường gặp khi bảo vệ
+      kèm câu trả lời ngắn gọn dựa trên đúng code của dự án · 6 điểm cần nhấn mạnh.
+
+★ SỬA THÊM (phát hiện khi chạy thật & test qua tên miền khác localhost) ★
+  1. LỖI CỜ SECURE CỦA COOKIE ĐĂNG NHẬP
+     .env ghi COOKIE_SECURE=false nhưng cách đọc cũ (z.coerce.boolean) hiểu chuỗi "false"
+     thành true ⇒ cookie đăng nhập LUÔN bị gắn cờ Secure ⇒ trình duyệt chỉ nhận trên
+     HTTPS hoặc localhost. Hệ quả: chạy http trên máy khác/địa chỉ IP khác localhost
+     (ví dụ http://192.168.1.10:3000 khi demo) thì đăng nhập báo thành công nhưng
+     MẤT PHIÊN ngay sau đó.
+     ĐÃ SỬA: chỉ "true"/"1" mới bật. Khi deploy thật (NODE_ENV=production) vẫn tự bật
+     Secure như đúng chuẩn bảo mật.
+  2. CORS TRẢ VỀ 500 KHI GẶP ORIGIN LẠ
+     Request POST kèm Origin không nằm trong CORS_ORIGIN từng bị ném lỗi ⇒ HTTP 500
+     "Đã có lỗi xảy ra" (gặp khi web gọi API qua tên miền xem trước / reverse proxy).
+     ĐÃ SỬA: origin lạ bị TỪ CHỐI NHẸ NHÀNG (không gửi header CORS) — trình duyệt tự
+     chặn nếu thật sự cross-origin, còn đi qua proxy cùng origin thì chạy bình thường.
+  3. THÊM 2 TRANG CÒN THIẾU: /terms (Điều khoản sử dụng) và /privacy (Chính sách bảo mật).
+     Trước đây chân trang có liên kết tới 2 địa chỉ này nhưng bấm vào là 404.
+  4. Bộ nhớ trình duyệt (localStorage) đã bọc try/catch — tránh trắng trang ở môi trường
+     chặn lưu trữ (chế độ riêng tư, iframe sandbox).
+  5. kiem-tra.sh / kiem-tra.cmd nay kiểm tra 29 mục (thêm /admin/categories, /terms, /privacy).
+  6. ĐÃ KIỂM CHỨNG QUA TÊN MIỀN KHÁC localhost: 7/7 bước sạch, 0 lỗi — tải trang chủ,
+     20 sản phẩm, đăng nhập khách hàng, thêm vào giỏ, mở giỏ, mở thanh toán, đăng nhập
+     quản trị rồi mở Sản phẩm (15 dòng) + Danh mục (6 dòng).
+
+#11 (14/09/2026)  <-- SỬA LỖI THẬT ĐÃ GẶP TRÊN MÁY WINDOWS
+  + LỖI: Error: @prisma/client did not initialize yet. Please run "prisma generate" ...
+        (báo ở bước nạp dữ liệu mẫu, sau đó API không khởi động được)
+    NGUYÊN NHÂN: bước kiểm tra cũ chỉ xem file node_modules/.prisma/client/index.js
+        CÓ TỒN TẠI hay không. Nhưng npm tạo sẵn một BẢN GIẢ (chép từ
+        @prisma/client/scripts/default-index.js) ⇒ script tưởng đã generate ⇒ bỏ qua
+        bước generate ⇒ seed + API chết.
+    ĐÃ SỬA: kiểm tra THẬT bằng cách khởi tạo PrismaClient; nhận diện bản giả qua câu
+        "did not initialize yet"; nếu là bản giả thì TỰ generate rồi kiểm tra lại;
+        seed lỗi vì lý do này thì TỰ generate và nạp lại; vẫn lỗi thì DỪNG và in
+        hướng dẫn cụ thể + log logs/prisma-generate.log.
+  + doctor.mjs và backend/scripts/predev.mjs cũng kiểm tra thật như trên.
+  + HUONG-DAN-SETUP.md + BAT-DAU-O-DAY.md: thêm dòng xử lý sự cố cho lỗi này.
+
+#10 (14/09/2026)  <-- BẢN CHỐT: đã có hướng dẫn setup hoàn chỉnh
+  + HUONG-DAN-SETUP.md — HƯỚNG DẪN CHÍNH THỨC, đầy đủ A→Z, 10 mục:
+        1. Cần chuẩn bị gì (Node ≥20, Docker Engine running, Git Bash, RAM, ổ đĩa)
+        2. Tải & giải nén đúng cách + cách kiểm tra đúng gói mới
+        3. Bật Docker Desktop
+        4. Chạy setup bằng 3 lệnh (kèm bảng script tự làm gì)
+        5. Kết quả đúng trông thế nào + tài khoản + địa chỉ truy cập
+        6. Kiểm tra lại bằng kiem-tra.sh (29 mục)
+        7. Bảng lệnh dùng hằng ngày + so sánh chế độ dev/prod
+        8. XỬ LÝ SỰ CỐ: 12 lỗi thường gặp kèm cách sửa cụ thể
+        9. Checklist 8 điểm trước khi demo/nộp bài
+       10. VS Code + phụ lục cấu trúc thư mục, bảng cổng
+  + SỬA LỖI 'stop-all.sh không tắt sạch': trước đây chỉ tắt tiến trình npm cha, các tiến
+        trình con (tsx/next) thành MỒ CÔI và vẫn giữ cổng 3000/4000.
+        Nay: giết CẢ CÂY tiến trình (setsid + pkill -P + nhóm tiến trình, Windows thì
+        taskkill /T) + dọn mồ côi còn sót của dự án + thử giải phóng cổng 3 lần
+        + báo rõ nếu cổng còn bị chương trình KHÁC giữ.
+  + start-all.sh TỰ BẢO VỆ theo RAM: máy dưới ~3 GB (hoặc RAM trống < 900 MB)
+        tự chuyển sang chế độ production ⇒ không còn cảnh web tự tắt khi mở /admin.
+        Ép chạy dev khi cần hot-reload:  bash start-all.sh dev
+  + kiem-tra.sh kiên cường hơn: trang nào chậm thì THỬ LẠI lần 2 (chờ tới 2 phút);
+        nếu web thật sự đã tắt thì báo thẳng "do hết RAM ở chế độ dev → dùng prod"
+  + Nhắc rõ: nên để dự án NGOÀI OneDrive/Desktop (tránh khoá file node_modules)
+  + Hướng dẫn xoá sạch dữ liệu về ban đầu: npx prisma migrate reset --force
+
+#9 (14/09/2026)   <-- BẢN ỔN ĐỊNH, KHUYẾN NGHỊ DÙNG
+  + start-all.sh  VIẾT LẠI HOÀN TOÀN — tự cài, tự sửa, tự chạy, TỰ KIỂM TRA:
+        · tự bật Docker Desktop / PostgreSQL và ĐỢI tới khi database sẵn sàng
+        · tự tạo hoặc SỬA backend/.env (sinh khoá bí mật nếu thiếu / quá ngắn /
+          còn là khoá mẫu) -> hết cảnh API "chết im lặng" rồi web trắng
+        · tự npm install nếu thiếu node_modules (log ở logs/install-*.log)
+        · tự prisma generate + migrate + seed nếu database còn trống
+        · tự dọn tiến trình CŨ của chính dự án đang giữ cổng 3000/4000;
+          gặp chương trình LẠ thì BÁO RÕ và không tự tắt
+        · chạy API + web ở chế độ nền, ghi logs/api.log & logs/web.log
+        · ĐỢI tới khi CẢ HAI trả HTTP 200 rồi mới in bảng thành công
+        · nếu có server không lên: IN 25 DÒNG LOG CUỐI + cách sửa (mã thoát 1)
+  + stop-all.sh / stop-all.cmd  — tắt sạch API + web, giải phóng cổng 3000/4000
+  + xem-log.sh                  — xem log realtime; 'bash xem-log.sh loi' chỉ in dòng lỗi
+  + backend/scripts/db-check.mjs — biết database đã có dữ liệu mẫu chưa
+  + CHẾ ĐỘ PRODUCTION:  bash start-all.sh prod
+        · tự 'npm run build' (chỉ build lại khi mã nguồn đổi) rồi 'npm start'
+        · nhẹ RAM hơn nhiều và mở trang chỉ ~10 ms  (dev: 0.5–9 giây)
+        · chống được cảnh "web tự tắt khi mở /admin" trên máy ít RAM
+  + kiem-tra.sh / kiem-tra.cmd — TỰ KIỂM TRA 29 mục: API, database có dữ liệu,
+        đăng nhập khách + quản trị, phân quyền (khách bị chặn 403), mã QR,
+        và mở 14–15 trang web. In rõ mục nào lỗi và cách xử lý.
+  + start-all.sh bước 8/8: tự mở thử 4 trang chính sau khi bật, lỗi lộ ra NGAY
+  + start-all.sh: đọc RAM trống, nhắc dùng chế độ prod nếu máy yếu RAM
+  + ĐÃ TEST THẬT với đường dẫn có DẤU CÁCH kiểu "C:\protect code\...": chạy tốt
+
+#8 (14/09/2026)
+  + backend/scripts/predev.mjs  — chạy TRƯỚC 'npm run dev': kiểm tra .env, khoá JWT >= 32
+        ký tự, thư viện, Prisma Client, CỔNG 4000 có bị chiếm, PostgreSQL có kết nối được.
+        Lỗi "chết im lặng" nay được in ra kèm cách sửa cụ thể.
+  + frontend/scripts/predev.mjs — kiểm tra thư viện, .env.local, CỔNG 3000, API :4000 đã chạy chưa
+  + npm run dev (cả 2 phía) giờ tự chạy lớp kiểm tra này trước
+  + BAT-DAU-O-DAY.md: mục 4c giải thích ERR_CONNECTION_REFUSED là gì và sửa thế nào
+
+#7 (14/09/2026)
+  + chan-doan.cmd / chan-doan.sh — CHẨN ĐOÁN: Docker, container, .env, thư viện, DB,
+        cổng 3000/4000, thử kết nối → lưu ra chan-doan-ket-qua.txt
+  + doctor: thêm mục "6/7 Server đang chạy" (kiểm tra API :4000 và WEB :3000)
+  + start-all.cmd: kiểm tra Docker/thư viện/cổng TRƯỚC, đợi server THẬT SỰ lên
+        rồi mới mở trình duyệt; báo rõ nếu server không lên
+  + BAT-DAU-O-DAY.md: mục 4b "Web không mở lên?" + giải thích lỗi npm start ENOENT
+
+#6 (14/09/2026)
+  + .vscode/tasks.json   — 22 task: cài đặt, chạy, test, build, seed, log, đổi DB
+        + mới: 📖 mở HUONG-DAN-SETUP.md · 🧪 tự kiểm tra 29 mục · 🛑 tắt hệ thống
+  + .vscode/launch.json  — 5 cấu hình debug (F5) + 1 compound chạy cả API & WEB
+  + .vscode/settings.json— terminal mặc định Git Bash, format khi lưu, ẩn node_modules
+  + VSCODE.md            — hướng dẫn VS Code tiếng Việt (cài, chạy, breakpoint, demo webhook)
+  + SỬA LỖI NẶNG: build-zip.py loại trừ sai "uploads" -> zip từng THIẾU
+        backend/src/modules/uploads/uploads.routes.ts khiến API không khởi động.
+        Giờ loại trừ theo đường dẫn chính xác + tự kiểm tra 123 file src trong zip.
+
+#5 (14/09/2026)
+  + BAT-DAU-O-DAY.md          — hướng dẫn bắt đầu gọn 3 bước, kèm bảng lỗi
+  + BUILD-INFO.txt            — file này (chống nhầm gói cũ)
+  + start-all.cmd / .sh       — bật Docker + API + Web bằng 1 lệnh
+  + db-start.cmd / db-stop.cmd— bật/tắt database
+  + backend|frontend/run-dev.cmd
+  + backend/scripts/bootstrap-env.mjs
+        -> gộp logic tạo/sửa backend/.env (trước đây viết 2 lần, dễ lệch)
+        -> TỰ SỬA .env: khoá mẫu / khoá < 32 ký tự / khoá trùng nhau -> sinh lại
+        -> ĐỔI localhost -> 127.0.0.1 trong DATABASE_URL (tránh bẫy IPv6 của Docker Desktop)
+        -> Bỏ BOM, chuẩn hoá CRLF để dotenv đọc đúng
+  + doctor: thêm mục "1/6 Gói cài đặt" — tự phát hiện zip cũ
+  + doctor: đổi ✓/✗ sang [OK]/[ !]/[ X] (không vỡ trên console Windows)
+  + doctor: tự chạy chcp 65001 + nói rõ khối đỏ "npm error code 1" là bình thường
+  + .env.example / frontend/.env.local: dùng 127.0.0.1 thay localhost
+
+#4
+  + setup-windows.ps1 / setup-windows.cmd / WINDOWS-SETUP.md
+  + backend/scripts/doctor.mjs
+  + npm run doctor  ·  npm run setup
+
+======================================================================
+TÀI KHOẢN & ĐƯỜNG DẪN (sau khi chạy seed)
+======================================================================
+  Website    http://localhost:3000
+  API        http://localhost:4000/api/v1        Swagger: http://localhost:4000/api/docs
+  pgAdmin    http://localhost:5050               admin@shop.vn / admin
+  Postgres   127.0.0.1:5432                      postgres / postgres — DB: ecommerce
+  Khách      customer@shop.vn / Customer@123456
+  Quản trị   admin@shop.vn    / Admin@123456     (vào /admin)
+
+======================================================================

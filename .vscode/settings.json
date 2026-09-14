@@ -1,0 +1,41 @@
+{
+  // ── Terminal: mặc định dùng Git Bash (tránh lỗi npm.ps1 bị Execution Policy chặn) ──
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+
+  // ── Format khi lưu ──
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+
+  // ── Dự án có 2 package riêng (backend + frontend) → chỉ rõ cho ESLint ──
+  "eslint.workingDirectories": ["backend", "frontend"],
+
+  // ── Kiểu file ──
+  "files.eol": "\n",
+  "files.associations": {
+    "*.env.example": "dotenv",
+    ".env*": "dotenv"
+  },
+  "[prisma]": { "editor.defaultFormatter": "Prisma.prisma" },
+
+  // ── Không quét node_modules/.next cho nhanh ──
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/logs": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/dist/**": true,
+    "**/logs/**": true
+  },
+
+  // ── Gợi ý nhỏ cho dễ đọc code ──
+  "editor.rulers": [100, 120],
+  "editor.bracketPairColorization.enabled": true,
+  "explorer.compactFolders": false
+}

@@ -1,0 +1,21 @@
+{
+  // VS Code sẽ hiện thông báo "Install Recommended Extensions" khi bạn mở thư mục này.
+  // Nếu lỡ bấm bỏ qua: Ctrl+Shift+P → "Extensions: Show Recommended Extensions".
+  "recommendations": [
+    // Bắt buộc phải có
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "Prisma.prisma",
+    "bradlc.vscode-tailwindcss",
+
+    // Rất nên có
+    "usernamehw.errorlens",
+    "ms-azuretools.vscode-docker",
+    "vitest.explorer",
+    "mikestead.dotenv",
+
+    // Tuỳ thích
+    "eamodio.gitlens",
+    "rangav.vscode-thunder-client"
+  ]
+}

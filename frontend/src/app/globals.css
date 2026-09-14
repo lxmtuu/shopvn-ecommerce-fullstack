@@ -1,0 +1,228 @@
+@import 'tailwindcss';
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — một nguồn sự thật cho màu sắc, bo góc, đổ bóng, chuyển động
+   Đổi ở đây là đổi toàn bộ giao diện. Xem docs/06-UI-UX-DESIGN-SYSTEM.md
+   ═══════════════════════════════════════════════════════════════════════ */
+@theme {
+  --color-brand-50: #fff1f2;
+  --color-brand-100: #ffe4e6;
+  --color-brand-200: #fecdd3;
+  --color-brand-300: #fda4af;
+  --color-brand-400: #fb7185;
+  --color-brand-500: #f43f5e;
+  --color-brand-600: #e11d48;
+  --color-brand-700: #be123c;
+  --color-brand-800: #9f1239;
+  --color-brand-900: #881337;
+
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+  --color-ink-950: #020617;
+
+  --radius-card: 1rem;
+  --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px rgb(15 23 42 / 0.06);
+  --shadow-lift: 0 12px 32px -8px rgb(15 23 42 / 0.18);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+}
+
+/* ─── Dark mode bằng class (toggle ở header) ───────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-ink-50 text-ink-900 antialiased dark:bg-ink-950 dark:text-ink-100;
+  }
+  /* Vòng focus rõ ràng — bắt buộc cho accessibility */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+  ::selection {
+    @apply bg-brand-600 text-white;
+  }
+}
+
+@layer utilities {
+  .container-page {
+    @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8;
+  }
+  .card-surface {
+    @apply rounded-2xl border border-ink-200/70 bg-white shadow-[var(--shadow-soft)] dark:border-ink-800 dark:bg-ink-900;
+  }
+  .text-balance-vi {
+    text-wrap: balance;
+  }
+  .shimmer {
+    background: linear-gradient(90deg, transparent, rgb(148 163 184 / 0.18), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* Tôn trọng cài đặt giảm chuyển động của hệ điều hành (accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TRANG TRÍ & HIỆU ỨNG (bổ sung — giữ nguyên các class cũ ở trên)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@layer utilities {
+  /* ─── Nền ảnh + lớp phủ ─── */
+  .bg-photo {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  /* Lưới mảnh mờ dần — dùng phủ lên ảnh nền cho có chiều sâu */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(to right, rgb(15 23 42 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(15 23 42 / 0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .mask-fade-b { -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent); }
+  .mask-fade-x { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent); }
+
+  /* ─── Kính mờ (glassmorphism) ─── */
+  .glass {
+    background: rgb(255 255 255 / 0.08);
+    border: 1px solid rgb(255 255 255 / 0.16);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+  .glass-light {
+    background: rgb(255 255 255 / 0.75);
+    border: 1px solid rgb(255 255 255 / 0.6);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+  .dark .glass-light {
+    background: rgb(15 23 42 / 0.6);
+    border-color: rgb(255 255 255 / 0.08);
+  }
+
+  /* ─── Chữ gradient ─── */
+  .text-gradient {
+    background-image: linear-gradient(100deg, #fff 0%, #ffe4e6 45%, #fda4af 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-gradient-brand {
+    background-image: linear-gradient(100deg, var(--color-brand-600), #fb7185 55%, #f59e0b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ─── Thẻ nổi lên khi rê chuột ─── */
+  .card-hover { transition: transform 0.35s var(--ease-out-soft), box-shadow 0.35s var(--ease-out-soft), border-color 0.35s; }
+  .card-hover:hover { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
+
+  /* ─── Vệt sáng chạy ngang qua nút (sheen) ─── */
+  .sheen { position: relative; overflow: hidden; }
+  .sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 -60%;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.45), transparent);
+    transform: skewX(-18deg);
+    animation: sheen 3.6s var(--ease-out-soft) infinite;
+  }
+  @keyframes sheen { 0%, 62% { left: -60%; } 100% { left: 140%; } }
+
+  /* ─── Khối sáng (aurora) trôi chậm trong hero ─── */
+  .animate-aurora { animation: aurora 18s ease-in-out infinite alternate; }
+  @keyframes aurora {
+    0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+    50%  { transform: translate3d(4%, -6%, 0) scale(1.15); opacity: 0.8; }
+    100% { transform: translate3d(-5%, 5%, 0) scale(1.05); opacity: 0.6; }
+  }
+  .animate-aurora-slow { animation: aurora 26s ease-in-out infinite alternate-reverse; }
+
+  /* ─── Chấm nhấp nháy (trạng thái đang sale) ─── */
+  .pulse-dot { position: relative; }
+  .pulse-dot::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.35;
+    animation: pulse-ring 1.8s ease-out infinite;
+  }
+  @keyframes pulse-ring { 0% { transform: scale(0.6); opacity: 0.5; } 100% { transform: scale(2.1); opacity: 0; } }
+
+  /* ─── Hiện dần khi tải trang ─── */
+  .rise { animation: rise 0.7s var(--ease-out-soft) both; }
+  .rise-1 { animation-delay: 0.08s; }
+  .rise-2 { animation-delay: 0.16s; }
+  .rise-3 { animation-delay: 0.24s; }
+  .rise-4 { animation-delay: 0.32s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+  /* ─── Chữ chạy ngang (dải khuyến mãi) ─── */
+  .animate-marquee { animation: marquee 26s linear infinite; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ─── Thanh cuộn mảnh, hợp tông ─── */
+  .scroll-brand { scrollbar-width: thin; scrollbar-color: var(--color-brand-400) transparent; }
+  .scroll-brand::-webkit-scrollbar { height: 6px; width: 6px; }
+  .scroll-brand::-webkit-scrollbar-thumb { background: var(--color-brand-400); border-radius: 9999px; }
+
+  /* ─── Viền phát sáng nhẹ cho thẻ nổi bật ─── */
+  .ring-glow { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12), 0 18px 40px -18px rgb(225 29 72 / 0.55); }
+}
+
+/* Thanh cuộn toàn trang hợp tông thương hiệu (chỉ trên desktop) */
+@media (pointer: fine) {
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-brand-500) 55%, var(--color-ink-300));
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-500); background-clip: content-box; }
+}
