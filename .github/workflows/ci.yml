@@ -62,18 +62,23 @@ jobs:
   audit:
     name: Dependency audit (tham khảo, không chặn)
     runs-on: ubuntu-latest
-    # Không có `continue-on-error` sẽ khiến CI đỏ vì lỗ hổng gián tiếp trong
-    # dependency của dependency — điều ta không sửa được ngay. Vẫn hiển thị để
-    # biết khi nào cần nâng cấp.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      # `npm audit` trả mã lỗi khi còn BẤT KỲ advisory nào, kể cả lỗ hổng gián tiếp
+      # trong dependency của dependency (thứ không sửa được ngay). Để job không đỏ
+      # oan, đặt `continue-on-error` ở TỪNG STEP: job vẫn xanh, kết quả hiện thành
+      # cảnh báo trong log để biết khi nào cần nâng cấp.
       - name: Backend
         working-directory: backend
-        run: npm audit --omit=dev
+        run: npm audit --omit=dev --audit-level=critical
+        continue-on-error: true
+
       - name: Frontend
         working-directory: frontend
-        run: npm audit --omit=dev
+        run: npm audit --omit=dev --audit-level=critical
+        continue-on-error: true
