@@ -15,8 +15,15 @@ const limits = {
   fields: 20,
 };
 
+/**
+ * Kiểu callback của multer. Khai báo tại đây thay vì `Express.Multer.FileFilterCallback`
+ * vì @types/multer khai báo nó trong namespace của module (`multer.FileFilterCallback`),
+ * không nằm trong namespace global `Express.Multer` ⇒ tham chiếu cũ làm `tsc` báo lỗi.
+ */
+type FileFilterCallback = (error: Error | null, acceptFile?: boolean) => void;
+
 /** Chặn sớm theo MIME khai báo (lớp thật sự chống giả mạo là magic bytes ở lib/storage.ts) */
-const imageFilter = (_req: Express.Request, file: Express.Multer.File, cb: Express.Multer.FileFilterCallback) => {
+const imageFilter = (_req: Express.Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   if (!ALLOWED_IMAGE_MIME.includes(file.mimetype)) {
     return cb(AppError.badRequest(`Chỉ nhận file ảnh (${ALLOWED_IMAGE_MIME.map((m) => m.replace('image/', '')).join(', ')})`));
   }
