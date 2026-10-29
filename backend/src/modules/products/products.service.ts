@@ -252,12 +252,23 @@ export const productsService = {
   },
 
   /** Chi tiết theo slug — kèm biến thể, ảnh, thống kê đánh giá */
-  async detail(slug: string, opts: { userId?: string; sessionId?: string; ip?: string } = {}) {
+  async detail(
+    slug: string,
+    opts: { userId?: string; sessionId?: string; ip?: string; isAdmin?: boolean } = {},
+  ) {
+    /**
+     * Khách chỉ thấy sản phẩm đang bán. ADMIN thấy cả sản phẩm đã tắt bán —
+     * nếu không, trang "Sửa sản phẩm" sẽ 404 đúng lúc admin cần bật lại.
+     */
     const product = await prisma.product.findFirst({
-      where: { slug, deletedAt: null, isActive: true },
+      where: { slug, deletedAt: null, ...(opts.isAdmin ? {} : { isActive: true }) },
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
-        variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
+        variants: {
+          // Admin thấy cả biến thể đã tắt bán; khách chỉ thấy biến thể đang bán
+          where: opts.isAdmin ? {} : { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+        },
         brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
         category: { select: { id: true, name: true, slug: true, parentId: true } },
         coupons: {

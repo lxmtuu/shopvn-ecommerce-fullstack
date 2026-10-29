@@ -1,8 +1,8 @@
 import { prisma } from '../../lib/prisma.js';
+import { authService } from '../auth/auth.service.js';
 import { AppError } from '../../utils/AppError.js';
 import { buildMeta, parsePagination } from '../../utils/pagination.js';
 import { money } from '../../utils/money.js';
-import { mailer } from '../../lib/mailer.js';
 import type { AdminUserQuery } from './users.schema.js';
 
 export const usersService = {
@@ -153,10 +153,17 @@ export const usersService = {
     return { id: updated.id, role: updated.role };
   },
 
+  /**
+   * Admin gửi link đặt lại mật khẩu cho khách.
+   * Trước đây chỉ gửi link `/forgot-password` KHÔNG kèm token ⇒ khách bấm vào
+   * vẫn phải tự nhập email, coi như không có tác dụng. Nay tái sử dụng đúng
+   * luồng quên mật khẩu của authService (sinh token 15 phút, vô hiệu token cũ).
+   */
   async sendResetLink(id: string) {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) throw AppError.notFound('Không tìm thấy người dùng');
-    await mailer.resetPassword(user.email, user.fullName, `${process.env.CLIENT_URL}/forgot-password`, 15);
+    if (user.status === 'DELETED') throw AppError.badRequest('Tài khoản đã bị xoá, không thể đặt lại mật khẩu');
+    await authService.forgotPassword(user.email);
     return { sent: true };
   },
 };
