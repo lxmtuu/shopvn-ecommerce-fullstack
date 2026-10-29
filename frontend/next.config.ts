@@ -9,6 +9,14 @@ const API_PROXY_TARGET = process.env.API_PROXY_TARGET ?? 'http://localhost:4000'
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  /**
+   * Dev server chỉ phục vụ tài nguyên `/_next/*` cho origin được khai báo ở đây.
+   * Next 15.5 mới chỉ cảnh báo, nhưng các bản sau sẽ CHẶN ⇒ khai báo sớm.
+   *  • localhost / 127.0.0.1: chạy trên máy
+   *  • *.e2b.app: môi trường preview dạng sandbox (link xem trước trong README)
+   */
+  allowedDevOrigins: ['localhost:3000', '127.0.0.1:3000', '*.e2b.app'],
+
   images: {
     // Ảnh seed dùng picsum; lên production nhớ thêm domain CDN thật của bạn.
     // Lưu ý: ảnh upload từ backend chạy ở http://localhost:4000/uploads/...
@@ -35,7 +43,8 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  eslint: { ignoreDuringBuilds: true },
+  // Có ESLint thật (eslint.config.mjs) nên để build kiểm tra luôn — lỗi lint chặn release
+  eslint: { ignoreDuringBuilds: false },
 };
 
 export default nextConfig;

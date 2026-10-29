@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Heart, Package, ShoppingCart, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, EmptyState, Skeleton } from '@/components/ui';
-import { api, apiData, ApiError } from '@/lib/api';
+import { api, apiData } from '@/lib/api';
 import { formatDate, formatVND } from '@/lib/format';
 import { useCartStore } from '@/store/cart.store';
 

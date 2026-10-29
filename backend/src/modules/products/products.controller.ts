@@ -26,6 +26,8 @@ export const productsController = {
     const product = await productsService.detail(p(req.params.slug), {
       userId: req.user?.id,
       ip: req.ip,
+      // Admin xem được cả sản phẩm đang ẩn (dùng cho trang sửa sản phẩm)
+      isAdmin: req.user?.role === 'ADMIN',
     });
     return ok(res, product);
   },

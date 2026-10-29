@@ -4,12 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowRight, BadgeCheck, Gift, Headphones, QrCode, RotateCcw, ShieldCheck, Sparkles, Truck, Zap } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Gift, QrCode, RotateCcw, ShieldCheck, Sparkles, Truck, Zap } from 'lucide-react';
 import { Button, ProductCardSkeleton } from '@/components/ui';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { useCategories } from '@/hooks/useCategories';
 import { apiFull } from '@/lib/api';
-import type { Category, ProductCard as ProductCardType } from '@/types';
+import type { ProductCard as ProductCardType } from '@/types';
 
 const MARQUEE = [
   { icon: Gift, text: 'Nhập WELCOME10 — giảm 10% cho đơn đầu tiên' },
@@ -258,7 +258,7 @@ export default function HomePage() {
             </div>
             <div className="flex justify-center">
               <div className="rounded-2xl bg-white p-4 shadow-2xl">
-                <Image src="https://picsum.photos/seed/shopvn-qr/400/400" alt="Minh hoạ QR thanh toán" width={220} height={220} className="rounded-xl" />
+                <Image src="/img/qr-demo.png" alt="Minh hoạ QR thanh toán VietQR" width={220} height={220} className="rounded-xl" />
                 <p className="mt-3 text-center text-xs font-semibold text-ink-500">Quét bằng app ngân hàng bất kỳ</p>
               </div>
             </div>

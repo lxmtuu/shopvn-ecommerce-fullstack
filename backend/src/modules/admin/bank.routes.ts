@@ -4,6 +4,7 @@ import { prisma } from '../../lib/prisma.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { ok } from '../../utils/response.js';
 import { bankNameOf } from '../../lib/vietqr.js';
+import { getShippingConfig } from '../../lib/shipping.js';
 
 /** Thông tin ngân hàng công khai để FE hiển thị ở trang thanh toán & footer */
 const router = Router();
@@ -11,7 +12,10 @@ const router = Router();
 router.get(
   '/bank-info',
   asyncHandler(async (_req, res) => {
-    const settings = await prisma.siteSetting.findUnique({ where: { id: 'default' } });
+    const [settings, shipping] = await Promise.all([
+      prisma.siteSetting.findUnique({ where: { id: 'default' } }),
+      getShippingConfig(),
+    ]);
     return ok(res, {
       bankBin: settings?.bankBin ?? env.BANK_BIN,
       bankName: bankNameOf(settings?.bankBin ?? env.BANK_BIN),
@@ -21,8 +25,10 @@ router.get(
       email: settings?.email ?? 'hotro@shopvn.vn',
       social: (settings?.social as Record<string, string> | null) ?? {},
       siteName: settings?.siteName ?? env.APP_NAME,
-      shippingFees: settings?.shippingFees ?? { STANDARD: 30000, EXPRESS: 50000, INSTANT: 80000 },
-      freeShipThreshold: Number(settings?.freeShipThreshold ?? env.FREE_SHIPPING_THRESHOLD),
+      // Một nguồn duy nhất với lúc tạo đơn (lib/shipping.ts) — tránh FE hiển thị
+      // một giá, BE tính giá khác
+      shippingFees: shipping.fees,
+      freeShipThreshold: shipping.freeShipThreshold,
     });
   }),
 );

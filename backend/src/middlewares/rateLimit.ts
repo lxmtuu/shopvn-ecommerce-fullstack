@@ -1,7 +1,6 @@
 import rateLimit, { type Options } from 'express-rate-limit';
 import { env } from '../config/env.js';
 import type { Request } from 'express';
-import { getRedis } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
 
 /**

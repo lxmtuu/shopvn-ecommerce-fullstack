@@ -8,7 +8,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { Check, MessageSquare, Reply, ShieldCheck, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge, Button, Modal, Pagination, StarRating } from '@/components/ui';
-import { TableSkeleton, TableWrap, Td, Th } from '@/components/admin/AdminTable';
+import { TableSkeleton } from '@/components/admin/AdminTable';
 import { api, apiFull } from '@/lib/api';
 import type { Paginated } from '@/types';
 import { cx, formatDate } from '@/lib/format';

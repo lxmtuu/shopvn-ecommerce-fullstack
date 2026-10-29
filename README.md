@@ -1,11 +1,16 @@
-[README.md](https://github.com/user-attachments/files/32199638/README.md)
-[README.md](https://github.com/user-attachments/files/32199629/README.md)
 # 🛒 ShopVN — E-commerce Fullstack (Next.js + Express + PostgreSQL + Prisma)
 
 Sàn thương mại điện tử full-stack: **Next.js 15 App Router + Express REST API + PostgreSQL 16 + Prisma**,
 có xác thực JWT (refresh-token rotation), phân quyền RBAC, thanh toán **chuyển khoản VietQR tự sinh chuẩn EMVCo**
 với webhook đối soát tự động, quên mật khẩu qua email, đăng nhập Google, và dashboard quản trị có thống kê.
 
+> ▶️ **Xem trước giao diện (không cần cài đặt gì):** **[mở bản chạy thử trên Vercel »](https://shopvn-demo-neyus-projects-183b1dff.vercel.app)**
+> — bản demo chỉ có frontend + dữ liệu mẫu, bấm được cả khu khách hàng lẫn `/admin`
+> (đăng nhập bằng **bất kỳ email/mật khẩu nào**).
+> Muốn bản chạy thật (đặt hàng, thanh toán, email…): `bash start-all.sh` rồi mở <http://localhost:3000>.
+>
+> ℹ️ Bản demo chạy bằng `/demo-api` (bật qua `DEMO_MODE=1`), không cần database nên **không lưu** giỏ hàng/đơn hàng.
+>
 > ⚡ **Mới tải về và muốn chạy ngay?** Đọc [`BAT-DAU-O-DAY.md`](BAT-DAU-O-DAY.md) — 3 bước: bật Docker → chạy 1 lệnh setup → nháy đúp `start-all.cmd`.
 >
 > 💻 **Code bằng VS Code?** Đọc [`VSCODE.md`](VSCODE.md) — Tasks + Debug cấu hình sẵn: `Ctrl+Shift+B` để chạy, `F5` để debug có breakpoint.
@@ -19,9 +24,10 @@ với webhook đối soát tự động, quên mật khẩu qua email, đăng nh
 |---|---|
 | Backend API (Express · Prisma · PostgreSQL) | ✅ Chạy thật — đã kiểm thử E2E cả luồng mua hàng + webhook đối soát |
 | Thanh toán VietQR + tự động xác nhận đơn | ✅ Chạy thật (HMAC + chống trùng lặp + transaction Serializable) |
-| Unit test backend | ✅ 36/36 pass · `tsc --noEmit` 0 lỗi |
-| Frontend Next.js 15 | ✅ 29 route, `next build` pass, `tsc --noEmit` 0 lỗi |
-| Tài liệu | ✅ `docs/01` → `docs/07` |
+| Unit test backend | ✅ 43 test (Vitest) · `tsc --noEmit` 0 lỗi · ESLint 0 warning |
+| Frontend Next.js 15 | ✅ 32 route, `next build` pass, `tsc --noEmit` 0 lỗi, ESLint 0 warning |
+| Ảnh giao diện | ✅ 13 ảnh chụp thật trong [`docs/screenshots/`](docs/screenshots) |
+| Tài liệu | ✅ `docs/01` → `docs/08` (kèm báo cáo rà soát) |
 
 ---
 
@@ -94,24 +100,71 @@ khoản VietQR tự động xác nhận**, kèm trang quản trị đầy đủ 
 
 ---
 
-## Ảnh chụp màn hình
+## Ảnh giao diện
 
-| Trang chủ | Danh sách sản phẩm |
-|---|---|
-| ![Trang chủ](docs/screenshots/trang-chu.jpg) | ![Danh sách sản phẩm](docs/screenshots/danh-sach-san-pham.jpg) |
+Ảnh chụp trực tiếp từ giao diện thật (Chrome 1440×900, dữ liệu demo sau `npm run seed`).
+Bấm vào ảnh để xem kích thước đầy đủ — file nằm trong [`docs/screenshots/`](docs/screenshots).
 
-| Chi tiết sản phẩm | Giỏ hàng |
-|---|---|
-| ![Chi tiết sản phẩm](docs/screenshots/chi-tiet-san-pham.jpg) | ![Giỏ hàng](docs/screenshots/gio-hang.jpg) |
+### Dành cho khách hàng
 
-| Quản trị — tổng quan | Quản trị — sản phẩm |
+| Trang chủ | Danh sách sản phẩm (lọc + sắp xếp) |
 |---|---|
-| ![Bảng điều khiển](docs/screenshots/quan-tri-tong-quan.jpg) | ![Quản lý sản phẩm](docs/screenshots/quan-tri-san-pham.jpg) |
+| [![Trang chủ](docs/screenshots/trang-chu.jpg)](docs/screenshots/trang-chu.jpg) | [![Danh sách sản phẩm](docs/screenshots/danh-sach-san-pham.jpg)](docs/screenshots/danh-sach-san-pham.jpg) |
+
+| Chi tiết sản phẩm (biến thể, tồn kho) | Đánh giá sản phẩm — `?tab=reviews` |
+|---|---|
+| [![Chi tiết sản phẩm](docs/screenshots/chi-tiet-san-pham.jpg)](docs/screenshots/chi-tiet-san-pham.jpg) | [![Đánh giá sản phẩm](docs/screenshots/danh-gia-san-pham.jpg)](docs/screenshots/danh-gia-san-pham.jpg) |
+
+| Giỏ hàng | Thanh toán 3 bước |
+|---|---|
+| [![Giỏ hàng](docs/screenshots/gio-hang.jpg)](docs/screenshots/gio-hang.jpg) | [![Thanh toán](docs/screenshots/thanh-toan.jpg)](docs/screenshots/thanh-toan.jpg) |
+
+| Đăng nhập | Đơn hàng của tôi (timeline trạng thái) |
+|---|---|
+| [![Đăng nhập](docs/screenshots/dang-nhap.jpg)](docs/screenshots/dang-nhap.jpg) | [![Đơn hàng của tôi](docs/screenshots/tai-khoan-don-hang.jpg)](docs/screenshots/tai-khoan-don-hang.jpg) |
+
+### Dành cho quản trị
+
+| Bảng điều khiển KPI | Quản lý sản phẩm |
+|---|---|
+| [![Bảng điều khiển](docs/screenshots/quan-tri-tong-quan.jpg)](docs/screenshots/quan-tri-tong-quan.jpg) | [![Quản lý sản phẩm](docs/screenshots/quan-tri-san-pham.jpg)](docs/screenshots/quan-tri-san-pham.jpg) |
+
+| Quản lý đơn hàng | Cấu hình shop (phí ship, ngân hàng) |
+|---|---|
+| [![Quản lý đơn hàng](docs/screenshots/quan-tri-don-hang.jpg)](docs/screenshots/quan-tri-don-hang.jpg) | [![Cấu hình shop](docs/screenshots/quan-tri-cau-hinh.jpg)](docs/screenshots/quan-tri-cau-hinh.jpg) |
 
 <p align="center">
-  <img src="docs/screenshots/dien-thoai.jpg" width="240" alt="Giao diện di động">
-  <br><em>Giao diện di động (iPhone 13 — 390px)</em>
+  <img src="docs/screenshots/dien-thoai.jpg" width="260" alt="Giao diện di động">
+  <br><em>Giao diện di động — 390px (iPhone 13/14)</em>
 </p>
+
+Bộ **16 ảnh sản phẩm** (1000×1000) mà seed dùng nằm trong [`frontend/public/img/products/`](frontend/public/img/products) —
+không phụ thuộc mạng ngoài.
+
+---
+
+## Đánh giá sản phẩm
+
+Mỗi sản phẩm có tab **Đánh giá** ngay trên trang chi tiết, và tab này **đồng bộ với URL** nên chia sẻ được:
+
+> 👉 **[Xem đánh giá — iPhone 15 Pro Max 256GB](http://localhost:3000/products/iphone-15-pro-max-256gb?tab=reviews)**
+>
+> Mở link sau khi đã `npm run seed` (đổi `localhost:3000` thành domain thật khi deploy).
+> Link khác: [Sony WH-1000XM5](http://localhost:3000/products/sony-wh-1000xm5?tab=reviews) ·
+> [MacBook Air M3](http://localhost:3000/products/macbook-air-m3-13-inch-256gb?tab=reviews)
+
+Cơ chế:
+
+| Điểm | Chi tiết |
+|---|---|
+| Chỉ người **đã mua** | Bắt buộc có đơn `DELIVERED` chứa sản phẩm → gắn huy hiệu **“Đã mua hàng”** (`isVerified`) |
+| Mỗi người 1 đánh giá / sản phẩm | Gửi lại → `409`; vẫn **sửa** (`PATCH`) và **xoá** (`DELETE`) được |
+| Kiểm duyệt | Đánh giá mới ở trạng thái `PENDING`, admin duyệt mới hiển thị (chống spam) |
+| Nội dung | 1–5 sao, tiêu đề, nội dung ≥ 10 ký tự, tối đa **5 ảnh thực tế** (upload qua `/uploads/image`) |
+| Hiển thị | Biểu đồ phân bố 5→1 sao, lọc theo số sao, huy hiệu “Đã mua hàng”, **admin trả lời** công khai (đếm “hữu ích” mới ở mức hiển thị, chưa có nút bình chọn) |
+
+API: `GET /api/v1/reviews?productId=…` (công khai) · `POST /api/v1/reviews` · `PATCH /api/v1/reviews/:id` · `DELETE /api/v1/reviews/:id` ·
+admin duyệt tại `PATCH /api/v1/admin/reviews/:id`.
 
 ---
 
@@ -124,7 +177,7 @@ khoản VietQR tự động xác nhận**, kèm trang quản trị đầy đủ 
 | Model dữ liệu | **26** model Prisma · **37** index · có migration thật |
 | Trang giao diện | **30** trang (17 khách hàng + 12 quản trị + phụ trợ) |
 | Module backend | **15** module nghiệp vụ |
-| Test backend | **36/36** pass (Vitest) |
+| Test backend | **43** test (Vitest) — có unit test cho công thức phí ship |
 | Ảnh sản phẩm | **16** ảnh studio (1000×1000, baseline JPEG) |
 
 ---
@@ -254,7 +307,7 @@ cd frontend && npm install && npm run dev    # http://localhost:3000
 | `bash xem-log.sh` | Xem log đang chạy |
 | `bash chan-doan.sh` | Chẩn đoán khi web không mở lên |
 | `cd backend && npm run doctor` | Kiểm tra môi trường (Node, Docker, cổng, DB) |
-| `cd backend && npm test` | Chạy 36 unit test |
+| `cd backend && npm test` | Chạy 43 unit test |
 | `cd backend && npx prisma studio` | Xem/sửa dữ liệu bằng giao diện |
 | `cd backend && npx prisma migrate reset --force` | Xoá sạch → nạp lại dữ liệu mẫu |
 
@@ -318,13 +371,13 @@ Base URL: `/api/v1` · Tài liệu tương tác: **http://localhost:4000/api/doc
 | `categories` · `brands` | `GET /categories` (dạng cây) · `/categories/:slug` · `GET /brands` |
 | `cart` | `GET /cart` · `POST /cart/items` · `PATCH /cart/items/:id` · `DELETE /cart/items/:id` · `POST /cart/merge` |
 | `wishlist` · `addresses` | `GET/POST/DELETE /wishlist` · CRUD `/addresses` |
-| `orders` | `POST /orders` · `GET /orders` · `GET /orders/:code` · `PATCH /orders/:code/cancel` · `POST /orders/:code/repurchase` |
+| `orders` | `POST /orders` · `GET /orders` · `GET /orders/:code` · `POST /orders/:code/cancel` · `POST /orders/:code/reorder` · `POST /orders/:code/return` |
 | `payments` | `GET /payments/:orderCode/qr.png` · trạng thái thanh toán · xác nhận thủ công (admin) |
-| `reviews` | `GET /products/:slug/reviews` · `POST /reviews` · duyệt đánh giá (admin) |
+| `reviews` | `GET /reviews?productId=` · `POST /reviews` · duyệt đánh giá (admin) |
 | `coupons` | `GET /coupons/available` · kiểm tra mã giảm giá |
 | `webhooks` | `POST /webhooks/bank` — ngân hàng báo có, **xác thực HMAC-SHA256**, chống trùng lặp |
 | `admin` | 19 endpoint: thống kê, quản lý sản phẩm/đơn/người dùng/đánh giá/mã giảm giá, cấu hình shop, audit log, export CSV |
-| `uploads` | `POST /uploads` (ảnh, đã resize + tước EXIF) · `DELETE /uploads` |
+| `uploads` | `POST /uploads/image` (1 ảnh) · `POST /uploads/images` (nhiều ảnh — field `files` hoặc `images`) · `DELETE /uploads` (admin) — ảnh đã resize 3 cỡ + tước EXIF |
 
 **Chuẩn phản hồi:**
 
@@ -420,56 +473,3 @@ Danh sách đầy đủ 12 lỗi thường gặp: [`HUONG-DAN-SETUP.md`](HUONG-D
 ## Giấy phép
 
 [MIT](LICENSE) — dùng tự do cho mục đích học tập & portfolio.
-
-| API | http://localhost:4000/api/v1 |
-| Swagger UI | http://localhost:4000/api/docs |
-| pgAdmin | http://localhost:5050 |
-
-**Tài khoản demo (sau khi `npm run seed`):**
-
-| Vai trò | Email | Mật khẩu |
-|---|---|---|
-| Admin | `admin@shop.vn` | `Admin@123456` |
-| Khách hàng | `customer@shop.vn` | `Customer@123456` |
-
----
-
-## ✨ Tính năng
-
-**Customer:** đăng ký/đăng nhập · quên & đặt lại mật khẩu · xác thực email · Google OAuth · quản lý phiên thiết bị ·
-sản phẩm · tìm kiếm không dấu · lọc/sắp xếp theo URL · giỏ hàng (kể cả khách chưa đăng nhập) · yêu thích ·
-checkout 3 bước · **thanh toán QR chuyển khoản** · COD · mã giảm giá · theo dõi đơn có timeline · huỷ/mua lại/trả hàng · đánh giá · hồ sơ & sổ địa chỉ
-
-**Admin:** dashboard KPI + biểu đồ · CRUD sản phẩm (upload nhiều ảnh, biến thể) · CRUD danh mục/thương hiệu/mã giảm giá ·
-quản lý đơn (đổi trạng thái có validate) · xác nhận thanh toán thủ công · quản lý người dùng (khoá/mở, đổi role) ·
-duyệt đánh giá · thống kê & export CSV · cấu hình shop + **liên kết mạng xã hội** · audit log
-
----
-
-## 🔒 Bảo mật (tóm tắt)
-
-- Refresh token **rotation** + phát hiện tái sử dụng → revoke cả họ token (family) và gửi email cảnh báo
-- Token lưu **hash SHA-256** trong DB, không lưu bản thô
-- Cookie `httpOnly` + `SameSite` + `Secure` (prod) + **CSRF double-submit token**
-- RBAC 3 tầng + chống **IDOR** (mọi truy vấn đều gắn `userId` của chính chủ)
-- Zod validate toàn bộ body/query/params; Prisma chống SQL injection
-- Rate limit theo nhóm endpoint (login 5/15', quên mật khẩu 3/h…)
-- Helmet + CSP, upload whitelist MIME & magic bytes, resized bằng sharp, tước EXIF
-- Webhook ngân hàng verify **HMAC SHA-256 timing-safe** + idempotent
-- Error handler không leak stack trace ở production
-
-Xem checklist đầy đủ OWASP Top 10 trong `docs/04`.
-
----
-
-## 🧱 Tech stack
-
-**FE** Next.js 15 · React 19 · TypeScript strict · Tailwind CSS v4 · Radix UI · Framer Motion · Zustand · TanStack Query · React Hook Form + Zod · Recharts
-**BE** Node 20 · Express 5 · TypeScript · Prisma · PostgreSQL 16 · Redis (tuỳ chọn) · Zod · pino · Nodemailer · Sharp · Swagger
-**Test/CI** Vitest · Supertest · Playwright · GitHub Actions · Docker
-
----
-
-## 📄 Giấy phép
-
-MIT — dùng tự do cho mục đích học tập & portfolio.

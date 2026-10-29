@@ -62,6 +62,11 @@ export const PAYMENT_METHOD_LABEL: Record<string, string> = {
   MOMO: 'Ví MoMo',
 };
 
+/**
+ * Nhãn + phí MẶC ĐỊNH của các phương thức vận chuyển.
+ * `fee` chỉ dùng khi chưa tải được cấu hình từ API `/bank-info`
+ * (admin có thể sửa phí trong Cấu hình shop).
+ */
 export const SHIPPING_LABEL: Record<string, { label: string; desc: string; fee: number }> = {
   STANDARD: { label: 'Giao tiêu chuẩn', desc: '3–5 ngày làm việc', fee: 30000 },
   EXPRESS: { label: 'Giao nhanh', desc: '1–2 ngày làm việc', fee: 50000 },

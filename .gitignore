@@ -8,7 +8,8 @@ coverage/
 .env.local
 .env.*.local
 !.env.example
-uploads/
+# Chỉ thư mục ảnh do người dùng tải lên (KHÔNG khớp source code)
+/backend/uploads/
 backups/
 *.log
 .DS_Store
@@ -16,3 +17,6 @@ backups/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+# tasks.json/launch.json là cấu hình DÙNG CHUNG (VSCODE.md mô tả chúng) — phải commit
+!.vscode/tasks.json
+!.vscode/launch.json

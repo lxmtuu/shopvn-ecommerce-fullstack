@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
-import { env } from '../../config/env.js';
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../utils/AppError.js';
 import { D, money } from '../../utils/money.js';
+import { calcShippingFee, getShippingConfig, type ShippingConfig } from '../../lib/shipping.js';
 
 type Owner = { userId?: string; guestId?: string };
 
@@ -48,7 +48,10 @@ const availableStock = (item: { product: { stock: number }; variant: { stock: nu
   item.variant ? item.variant.stock : item.product.stock;
 
 /** Chuẩn hoá giỏ hàng trả về FE: giá hiệu lực, cảnh báo tồn kho, tổng tiền */
-function serialize(cart: Prisma.CartGetPayload<{ include: { items: { include: typeof ITEM_INCLUDE } } }>) {
+function serialize(
+  cart: Prisma.CartGetPayload<{ include: { items: { include: typeof ITEM_INCLUDE } } }>,
+  shipping: ShippingConfig,
+) {
   const items = cart.items.map((item) => {
     const price = unitPrice(item as never);
     const stock = availableStock(item as never);
@@ -76,7 +79,8 @@ function serialize(cart: Prisma.CartGetPayload<{ include: { items: { include: ty
 
   const subtotal = items.filter((i) => i.available).reduce((s, i) => s.plus(D(i.lineTotal)), D(0));
   const totalQuantity = items.reduce((s, i) => s + i.quantity, 0);
-  const shippingFee = subtotal.gte(env.FREE_SHIPPING_THRESHOLD) || subtotal.eq(0) ? D(0) : D(env.SHIPPING_FEE_STANDARD);
+  // Ước tính phí ship theo Cấu hình shop (đơn thật vẫn được tính lại khi tạo đơn)
+  const shippingFee = D(calcShippingFee('STANDARD', subtotal, shipping));
 
   return {
     id: cart.id,
@@ -85,8 +89,8 @@ function serialize(cart: Prisma.CartGetPayload<{ include: { items: { include: ty
     distinctCount: items.length,
     subtotal: money(subtotal),
     shippingFeeEstimate: money(shippingFee),
-    freeShippingThreshold: env.FREE_SHIPPING_THRESHOLD,
-    amountToFreeShipping: money(Prisma.Decimal.max(D(env.FREE_SHIPPING_THRESHOLD).minus(subtotal), 0)),
+    freeShippingThreshold: shipping.freeShipThreshold,
+    amountToFreeShipping: money(Prisma.Decimal.max(D(shipping.freeShipThreshold).minus(subtotal), 0)),
     totalEstimate: money(subtotal.plus(shippingFee)),
     hasIssues: items.some((i) => !i.available || i.exceedsStock),
   };
@@ -94,9 +98,9 @@ function serialize(cart: Prisma.CartGetPayload<{ include: { items: { include: ty
 
 export const cartService = {
   async get(owner: Owner) {
-    const { id } = await getOrCreateCart(owner);
+    const [{ id }, shipping] = await Promise.all([getOrCreateCart(owner), getShippingConfig()]);
     const cart = await prisma.cart.findUniqueOrThrow({ where: { id }, include: { items: { include: ITEM_INCLUDE, orderBy: { createdAt: 'desc' } } } });
-    return serialize(cart);
+    return serialize(cart, shipping);
   },
 
   async addItem(owner: Owner, input: { productId: string; variantId?: string | null; quantity: number }) {

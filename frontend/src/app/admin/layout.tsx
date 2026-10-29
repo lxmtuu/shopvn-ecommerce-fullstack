@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  BarChart3, Boxes, ChevronLeft, FolderTree, LayoutDashboard, Menu, MessageSquare, Moon, Package, Percent, ScrollText,
+  BarChart3, Boxes, FolderTree, LayoutDashboard, Menu, MessageSquare, Moon, Package, Percent, ScrollText,
   Settings, ShieldCheck, Store, Sun, Tags, Users, X,
 } from 'lucide-react';
 import { cx } from '@/lib/format';

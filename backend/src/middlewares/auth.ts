@@ -49,11 +49,18 @@ export const optionalAuth: RequestHandler = async (req, _res, next) => {
   if (!token) return next();
   try {
     const payload = verifyAccessToken(token);
-    const user = await prisma.user.findUnique({
-      where: { id: payload.sub },
-      select: { id: true, email: true, role: true, status: true },
-    });
-    if (user && user.status === 'ACTIVE') {
+    // Phải kiểm tra session còn sống: sau khi đăng xuất / bị thu hồi, access token
+    // cũ vẫn còn hạn — nếu bỏ qua bước này thì "khách vãng lai" vẫn thấy giỏ hàng,
+    // wishlist, đánh giá của người khác.
+    const [session, user] = await Promise.all([
+      prisma.session.findUnique({ where: { id: payload.sid }, select: { revokedAt: true, expiresAt: true } }),
+      prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: { id: true, email: true, role: true, status: true },
+      }),
+    ]);
+    const sessionAlive = !!session && !session.revokedAt && session.expiresAt > new Date();
+    if (sessionAlive && user && user.status === 'ACTIVE') {
       req.user = { id: user.id, email: user.email, role: user.role as Role, sessionId: payload.sid };
     }
   } catch {

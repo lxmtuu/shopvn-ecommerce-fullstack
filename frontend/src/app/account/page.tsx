@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Clock, Heart, Package, ShoppingBag, TrendingUp, XCircle } from 'lucide-react';
+import { ArrowRight, Clock, Heart, Package, ShoppingBag, TrendingUp } from 'lucide-react';
 import { Badge, Button, EmptyState, Skeleton } from '@/components/ui';
 import { apiFull, apiData } from '@/lib/api';
 import { cx, formatDate, formatVND, ORDER_STATUS, PAYMENT_STATUS } from '@/lib/format';

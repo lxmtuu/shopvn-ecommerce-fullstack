@@ -24,6 +24,7 @@ export function createApp(): Express {
   // internet — vì header X-Forwarded-For có thể bị giả mạo để né chống spam.
   // Khi bật: hạn mức chống spam tính theo từng người dùng thật (không dùng chung 1 IP
   // của proxy). Khi tắt: dùng IP kết nối trực tiếp (an toàn nhất).
+  // env.TRUST_PROXY: false = không tin proxy | số N = tin N lớp proxy gần nhất
   app.set('trust proxy', env.TRUST_PROXY);
   app.disable('x-powered-by');
 

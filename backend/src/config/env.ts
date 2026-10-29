@@ -29,8 +29,28 @@ const EnvSchema = z.object({
   RATE_LIMIT_WINDOW_MIN: z.coerce.number().int().positive().default(15),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(2000),
   RATE_LIMIT_LOGIN_MAX: z.coerce.number().int().positive().default(10),
-  /** Đặt 'true' khi chạy sau nginx/reverse proxy để lấy đúng IP người dùng từ X-Forwarded-For */
-  TRUST_PROXY: z.string().optional().transform((v) => v === 'true' || v === '1').default('false'),
+  /**
+   * Số lớp proxy tin cậy — dùng để lấy đúng IP người dùng từ X-Forwarded-For.
+   *   false / 0 = không tin proxy nào (an toàn nhất khi API lộ trực tiếp)
+   *   1         = tin đúng proxy gần nhất (nginx, proxy rewrite của Next…) ← khuyến nghị
+   *   2, 3…     = chuỗi nhiều lớp proxy (CDN + nginx + app)
+   *
+   * KHÔNG dùng `true` (tin MỌI proxy): kẻ tấn công có thể tự gửi X-Forwarded-For
+   * giả để né rate limit. Ở đây `true` được quy về 1 lớp.
+   */
+  TRUST_PROXY: z
+    .string()
+    .optional()
+    .transform((value, ctx) => {
+      const raw = (value ?? '').trim().toLowerCase();
+      if (!raw || raw === 'false' || raw === '0') return false;
+      if (raw === 'true') return 1;
+      const hops = Number(raw);
+      if (Number.isInteger(hops) && hops > 0) return hops;
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'TRUST_PROXY phải là false, true hoặc số lớp proxy (vd: 1)' });
+      return false;
+    })
+    .default('false'),
   COOKIE_DOMAIN: z.string().default('localhost'),
   // LƯU Ý: KHÔNG dùng z.coerce.boolean() ở đây — nó biến chuỗi "false" thành true
   // (Boolean("false") === true), khiến .env ghi COOKIE_SECURE=false mà cookie vẫn
@@ -75,13 +95,45 @@ const EnvSchema = z.object({
   SEED_ADMIN_PASSWORD: z.string().default('Admin@123456'),
   SEED_USER_EMAIL: z.string().default('customer@shop.vn'),
   SEED_USER_PASSWORD: z.string().default('Customer@123456'),
-});
+})
+  /**
+   * Chặn "chạy production với secret mẫu". Trước đây các giá trị placeholder trong
+   * .env.example (vd: 'thay_bang_chuoi_hex_128_ky_tu_1' dài 34 ký tự) VƯỢT qua
+   * kiểm tra min(32) ⇒ app production vẫn khởi động với secret ai cũng biết.
+   */
+  .superRefine((val, ctx) => {
+    if (val.NODE_ENV !== 'production') return;
+
+    const placeholders = [/^thay[_-]?bang/i, /^change[_-]?me/i, /^your[_-]?secret/i, /^dev[-_]/i];
+    const secrets = [
+      ['JWT_ACCESS_SECRET', val.JWT_ACCESS_SECRET],
+      ['JWT_REFRESH_SECRET', val.JWT_REFRESH_SECRET],
+      ['WEBHOOK_SECRET', val.WEBHOOK_SECRET],
+    ] as const;
+
+    for (const [key, value] of secrets) {
+      if (value === 'dev-webhook-secret' || placeholders.some((re) => re.test(value))) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: `${key} vẫn là giá trị mẫu — production BẮT BUỘC dùng chuỗi ngẫu nhiên riêng (vd: openssl rand -hex 32)`,
+        });
+      }
+    }
+
+    if (val.JWT_ACCESS_SECRET === val.JWT_REFRESH_SECRET) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['JWT_REFRESH_SECRET'],
+        message: 'JWT_REFRESH_SECRET phải KHÁC JWT_ACCESS_SECRET (lộ một cái không kéo theo cái còn lại)',
+      });
+    }
+  });
 
 const parsed = EnvSchema.safeParse(process.env);
 
 if (!parsed.success) {
   const issues = parsed.error.issues.map((i) => `  • ${i.path.join('.')}: ${i.message}`).join('\n');
-  // eslint-disable-next-line no-console
   console.error(`\n❌ Biến môi trường không hợp lệ:\n${issues}\n\n👉 Xem mẫu trong .env.example và docs/05-SETUP-VA-YEU-CAU.md\n`);
   process.exit(1);
 }

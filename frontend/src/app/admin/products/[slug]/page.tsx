@@ -11,7 +11,7 @@ import { Button, Input, Skeleton } from '@/components/ui';
 import { useCategories } from '@/hooks/useCategories';
 import { api, apiData, ApiError } from '@/lib/api';
 import { cx, formatVND } from '@/lib/format';
-import type { Brand, Category, ProductDetail } from '@/types';
+import type { Brand, ProductDetail } from '@/types';
 
 interface ImageRow { url: string; cardUrl?: string; thumbUrl?: string; blurData?: string; alt?: string; sortOrder: number }
 interface VariantRow { name: string; sku: string; price: string; salePrice: string; stock: string }
@@ -61,7 +61,9 @@ export default function AdminProductFormPage() {
       tags: existing.tags.join(', '),
       weightGram: existing.weightGram ? String(existing.weightGram) : '',
       warrantyMonths: existing.warrantyMonths ? String(existing.warrantyMonths) : '12',
-      isActive: true,
+      // Giữ đúng trạng thái hiện tại — trước đây hardcode `true` nên mỗi lần sửa
+      // là vô tình đăng bán lại sản phẩm đang bị ẩn.
+      isActive: existing.isActive,
       isFeatured: existing.isFeatured,
     });
     setImages(existing.images.map((img, i) => ({
