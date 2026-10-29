@@ -94,24 +94,69 @@ khoản VietQR tự động xác nhận**, kèm trang quản trị đầy đủ 
 
 ---
 
-## Ảnh chụp màn hình
+## Ảnh sản phẩm
 
-| Trang chủ | Danh sách sản phẩm |
+Bộ **16 ảnh studio 1000×1000** nằm ngay trong repo tại [`frontend/public/img/products/`](frontend/public/img/products) —
+seed dùng đúng các ảnh này nên clone về là có ảnh thật, không phụ thuộc mạng ngoài.
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="frontend/public/img/products/phone-1.jpg" width="200" alt="iPhone 15 Pro Max"><br>
+      <sub><b>iPhone 15 Pro Max 256GB</b></sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="frontend/public/img/products/laptop-1.jpg" width="200" alt="MacBook Air M3"><br>
+      <sub><b>MacBook Air M3 13 inch</b></sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="frontend/public/img/products/audio-1.jpg" width="200" alt="Sony WH-1000XM5"><br>
+      <sub><b>Sony WH-1000XM5</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="frontend/public/img/products/watch-1.jpg" width="200" alt="Apple Watch Series 9"><br>
+      <sub><b>Apple Watch Series 9</b></sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="frontend/public/img/products/home-1.jpg" width="200" alt="Nồi chiên không dầu Philips"><br>
+      <sub><b>Nồi chiên không dầu Philips 6.2L</b></sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="frontend/public/img/products/accessory-4.jpg" width="200" alt="Logitech MX Master 3S"><br>
+      <sub><b>Chuột Logitech MX Master 3S</b></sub>
+    </td>
+  </tr>
+</table>
+
+<sub>Xem đủ 16 ảnh: [`frontend/public/img/products/`](frontend/public/img/products) — gồm điện thoại (3), laptop (2), tai nghe (2),
+đồng hồ (2), gia dụng (2), phụ kiện (5).</sub>
+
+---
+
+## Đánh giá sản phẩm
+
+Mỗi sản phẩm có tab **Đánh giá** ngay trên trang chi tiết, và tab này **đồng bộ với URL** nên chia sẻ được:
+
+> 👉 **[Xem đánh giá — iPhone 15 Pro Max 256GB](http://localhost:3000/products/iphone-15-pro-max-256gb?tab=reviews)**
+>
+> Mở link sau khi đã `npm run seed` (đổi `localhost:3000` thành domain thật khi deploy).
+> Link khác: [Sony WH-1000XM5](http://localhost:3000/products/sony-wh-1000xm5?tab=reviews) ·
+> [MacBook Air M3](http://localhost:3000/products/macbook-air-m3-13-inch-256gb?tab=reviews)
+
+Cơ chế:
+
+| Điểm | Chi tiết |
 |---|---|
-| ![Trang chủ](docs/screenshots/trang-chu.jpg) | ![Danh sách sản phẩm](docs/screenshots/danh-sach-san-pham.jpg) |
+| Chỉ người **đã mua** | Bắt buộc có đơn `DELIVERED` chứa sản phẩm → gắn huy hiệu **“Đã mua hàng”** (`isVerified`) |
+| Mỗi người 1 đánh giá / sản phẩm | Gửi lại → `409`; vẫn **sửa** (`PATCH`) và **xoá** (`DELETE`) được |
+| Kiểm duyệt | Đánh giá mới ở trạng thái `PENDING`, admin duyệt mới hiển thị (chống spam) |
+| Nội dung | 1–5 sao, tiêu đề, nội dung ≥ 10 ký tự, tối đa **5 ảnh thực tế** (upload qua `/uploads/image`) |
+| Hiển thị | Biểu đồ phân bố 5→1 sao, lọc theo số sao, huy hiệu “Đã mua hàng”, **admin trả lời** công khai (đếm “hữu ích” mới ở mức hiển thị, chưa có nút bình chọn) |
 
-| Chi tiết sản phẩm | Giỏ hàng |
-|---|---|
-| ![Chi tiết sản phẩm](docs/screenshots/chi-tiet-san-pham.jpg) | ![Giỏ hàng](docs/screenshots/gio-hang.jpg) |
-
-| Quản trị — tổng quan | Quản trị — sản phẩm |
-|---|---|
-| ![Bảng điều khiển](docs/screenshots/quan-tri-tong-quan.jpg) | ![Quản lý sản phẩm](docs/screenshots/quan-tri-san-pham.jpg) |
-
-<p align="center">
-  <img src="docs/screenshots/dien-thoai.jpg" width="240" alt="Giao diện di động">
-  <br><em>Giao diện di động (iPhone 13 — 390px)</em>
-</p>
+API: `GET /api/v1/reviews?productId=…` (công khai) · `POST /api/v1/reviews` · `PATCH /api/v1/reviews/:id` · `DELETE /api/v1/reviews/:id` ·
+admin duyệt tại `PATCH /api/v1/admin/reviews/:id`.
 
 ---
 
@@ -124,7 +169,7 @@ khoản VietQR tự động xác nhận**, kèm trang quản trị đầy đủ 
 | Model dữ liệu | **26** model Prisma · **37** index · có migration thật |
 | Trang giao diện | **30** trang (17 khách hàng + 12 quản trị + phụ trợ) |
 | Module backend | **15** module nghiệp vụ |
-| Test backend | **36/36** pass (Vitest) |
+| Test backend | **43** test (Vitest) — có unit test cho công thức phí ship |
 | Ảnh sản phẩm | **16** ảnh studio (1000×1000, baseline JPEG) |
 
 ---
@@ -254,7 +299,7 @@ cd frontend && npm install && npm run dev    # http://localhost:3000
 | `bash xem-log.sh` | Xem log đang chạy |
 | `bash chan-doan.sh` | Chẩn đoán khi web không mở lên |
 | `cd backend && npm run doctor` | Kiểm tra môi trường (Node, Docker, cổng, DB) |
-| `cd backend && npm test` | Chạy 36 unit test |
+| `cd backend && npm test` | Chạy 43 unit test |
 | `cd backend && npx prisma studio` | Xem/sửa dữ liệu bằng giao diện |
 | `cd backend && npx prisma migrate reset --force` | Xoá sạch → nạp lại dữ liệu mẫu |
 
@@ -420,56 +465,3 @@ Danh sách đầy đủ 12 lỗi thường gặp: [`HUONG-DAN-SETUP.md`](HUONG-D
 ## Giấy phép
 
 [MIT](LICENSE) — dùng tự do cho mục đích học tập & portfolio.
-
-| API | http://localhost:4000/api/v1 |
-| Swagger UI | http://localhost:4000/api/docs |
-| pgAdmin | http://localhost:5050 |
-
-**Tài khoản demo (sau khi `npm run seed`):**
-
-| Vai trò | Email | Mật khẩu |
-|---|---|---|
-| Admin | `admin@shop.vn` | `Admin@123456` |
-| Khách hàng | `customer@shop.vn` | `Customer@123456` |
-
----
-
-## ✨ Tính năng
-
-**Customer:** đăng ký/đăng nhập · quên & đặt lại mật khẩu · xác thực email · Google OAuth · quản lý phiên thiết bị ·
-sản phẩm · tìm kiếm không dấu · lọc/sắp xếp theo URL · giỏ hàng (kể cả khách chưa đăng nhập) · yêu thích ·
-checkout 3 bước · **thanh toán QR chuyển khoản** · COD · mã giảm giá · theo dõi đơn có timeline · huỷ/mua lại/trả hàng · đánh giá · hồ sơ & sổ địa chỉ
-
-**Admin:** dashboard KPI + biểu đồ · CRUD sản phẩm (upload nhiều ảnh, biến thể) · CRUD danh mục/thương hiệu/mã giảm giá ·
-quản lý đơn (đổi trạng thái có validate) · xác nhận thanh toán thủ công · quản lý người dùng (khoá/mở, đổi role) ·
-duyệt đánh giá · thống kê & export CSV · cấu hình shop + **liên kết mạng xã hội** · audit log
-
----
-
-## 🔒 Bảo mật (tóm tắt)
-
-- Refresh token **rotation** + phát hiện tái sử dụng → revoke cả họ token (family) và gửi email cảnh báo
-- Token lưu **hash SHA-256** trong DB, không lưu bản thô
-- Cookie `httpOnly` + `SameSite` + `Secure` (prod) + **CSRF double-submit token**
-- RBAC 3 tầng + chống **IDOR** (mọi truy vấn đều gắn `userId` của chính chủ)
-- Zod validate toàn bộ body/query/params; Prisma chống SQL injection
-- Rate limit theo nhóm endpoint (login 5/15', quên mật khẩu 3/h…)
-- Helmet + CSP, upload whitelist MIME & magic bytes, resized bằng sharp, tước EXIF
-- Webhook ngân hàng verify **HMAC SHA-256 timing-safe** + idempotent
-- Error handler không leak stack trace ở production
-
-Xem checklist đầy đủ OWASP Top 10 trong `docs/04`.
-
----
-
-## 🧱 Tech stack
-
-**FE** Next.js 15 · React 19 · TypeScript strict · Tailwind CSS v4 · Radix UI · Framer Motion · Zustand · TanStack Query · React Hook Form + Zod · Recharts
-**BE** Node 20 · Express 5 · TypeScript · Prisma · PostgreSQL 16 · Redis (tuỳ chọn) · Zod · pino · Nodemailer · Sharp · Swagger
-**Test/CI** Vitest · Supertest · Playwright · GitHub Actions · Docker
-
----
-
-## 📄 Giấy phép
-
-MIT — dùng tự do cho mục đích học tập & portfolio.

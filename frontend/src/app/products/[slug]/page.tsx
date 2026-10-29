@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,18 +27,50 @@ const TABS = [
   { id: 'reviews', label: 'Đánh giá' },
 ] as const;
 
+type TabId = (typeof TABS)[number]['id'];
+
+/** `?tab=reviews` / `?tab=specs` trên URL → tab tương ứng (mặc định: mô tả) */
+const tabFromQuery = (value: string | null): TabId =>
+  value === 'reviews' || value === 'specs' ? value : 'desc';
+
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams?.get('tab') ?? null;
   const user = useAuthStore((s) => s.user);
   const addToCart = useCartStore((s) => s.add);
 
   const [variantId, setVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
-  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('desc');
+  // Đọc tab từ URL ngay từ lần render đầu → mở link ?tab=reviews là thấy đánh giá luôn.
+  const [tab, setTab] = useState<TabId>(() => tabFromQuery(tabParam));
+  const [tabsEl, setTabsEl] = useState<HTMLDivElement | null>(null);
   const [wishlisted, setWishlisted] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // Đồng bộ khi URL đổi (bấm back/forward, dán link khác tab) và cuộn tới phần tab
+  useEffect(() => {
+    setTab(tabFromQuery(tabParam));
+    if (tabParam === 'reviews' && tabsEl) {
+      tabsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabParam]);
+
+  /**
+   * Đổi tab + ghi lên URL → link đánh giá/specs chia sẻ được:
+   * `/products/<slug>?tab=reviews`. Nhờ vậy README có thể trỏ thẳng tới phần đánh giá.
+   */
+  const changeTab = (id: TabId) => {
+    setTab(id);
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    if (id === 'desc') params.delete('tab');
+    else params.set('tab', id);
+    const qs = params.toString();
+    router.replace(`/products/${slug}${qs ? `?${qs}` : ''}`, { scroll: false });
+  };
 
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ['product', slug],
@@ -263,7 +295,15 @@ export default function ProductDetailPage() {
               <StarRating value={product.rating.average} size={15} />
               <span className="font-bold">{product.rating.average.toFixed(1)}</span>
             </span>
-            <button onClick={() => setTab('reviews')} className="text-ink-500 hover:text-brand-600">({product.rating.count} đánh giá)</button>
+            <button
+              onClick={() => {
+                changeTab('reviews');
+                tabsEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="text-ink-500 hover:text-brand-600 dark:hover:text-brand-400"
+            >
+              ({product.rating.count} đánh giá)
+            </button>
             <span className="text-ink-300">•</span>
             <span className="text-ink-500">Đã bán {formatNumber(product.sold)}</span>
             <span className="text-ink-300">•</span>
@@ -433,12 +473,12 @@ export default function ProductDetailPage() {
       </div>
 
       {/* ══════════════ TABS ══════════════ */}
-      <div className="mt-14">
+      <div className="mt-14 scroll-mt-24" id="danh-gia" ref={setTabsEl}>
         <div className="flex gap-1 border-b border-ink-200 dark:border-ink-800">
           {TABS.map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => changeTab(t.id)}
               className={cx(
                 'relative px-4 py-3 text-sm font-semibold transition',
                 tab === t.id ? 'text-brand-600' : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200',
