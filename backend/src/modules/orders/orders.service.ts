@@ -8,9 +8,10 @@ import { buildVietQRPayload, bankNameOf } from '../../lib/vietqr.js';
 import { mailer } from '../../lib/mailer.js';
 import { logger } from '../../lib/logger.js';
 import { buildMeta, parsePagination } from '../../utils/pagination.js';
-import { CANCELLABLE_BY_CUSTOMER, ORDER_TRANSITIONS, SHIPPING_FEE } from '../../config/constants.js';
+import { CANCELLABLE_BY_CUSTOMER, ORDER_TRANSITIONS } from '../../config/constants.js';
 import { validateCoupon } from '../coupons/coupons.service.js';
 import { restoreStock, linesOfOrderItems } from '../../lib/stock.js';
+import { calcShippingFee, getShippingConfig } from '../../lib/shipping.js';
 import type { CreateOrderInput, OrderQuery } from './orders.schema.js';
 
 const ITEM_SNAPSHOT_INCLUDE = {
@@ -139,15 +140,9 @@ export const ordersService = {
       const lines = priceItems(cart);
       const subtotal = lines.reduce((s, l) => s.plus(l.lineTotal), D(0));
 
-      const shippingFee = D(
-        input.shippingMethod === 'INSTANT'
-          ? SHIPPING_FEE.INSTANT
-          : input.shippingMethod === 'EXPRESS'
-            ? SHIPPING_FEE.EXPRESS
-            : subtotal.gte(env.FREE_SHIPPING_THRESHOLD)
-              ? 0
-              : env.SHIPPING_FEE_STANDARD,
-      );
+      // Phí ship lấy từ Cấu hình shop (fallback .env) — xem lib/shipping.ts
+      const shippingConfig = await getShippingConfig();
+      const shippingFee = D(calcShippingFee(input.shippingMethod, subtotal, shippingConfig));
 
       let discount = D(0);
       let couponId: string | null = null;

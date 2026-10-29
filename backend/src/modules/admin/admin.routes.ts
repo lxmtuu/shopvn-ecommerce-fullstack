@@ -16,6 +16,7 @@ import { adminCouponRoutes } from '../coupons/coupons.routes.js';
 import { adminReviewRoutes } from '../reviews/reviews.routes.js';
 import { adminPaymentRoutes } from '../payments/payments.routes.js';
 import { p } from "../../utils/params.js";
+import { invalidateShippingConfig } from '../../lib/shipping.js';
 
 const router = Router();
 
@@ -110,6 +111,8 @@ router.patch(
       update: req.body,
     });
     await prisma.auditLog.create({ data: { userId: req.user!.id, action: 'settings.update', entity: 'SiteSetting', after: req.body } });
+    // Phí ship/freeship vừa đổi → xoá cache để đơn tiếp theo dùng giá mới ngay
+    await invalidateShippingConfig();
     return ok(res, settings, 'Đã lưu cấu hình');
   }),
 );

@@ -9,11 +9,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BadgeCheck, Building2, Check, CreditCard, Loader2, MapPin, Plus, QrCode, ShieldCheck, Tag, Truck, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, EmptyState, Input, Skeleton } from '@/components/ui';
-import { api, apiData, ApiError } from '@/lib/api';
+import { apiData, ApiError } from '@/lib/api';
 import { cx, formatVND, SHIPPING_LABEL } from '@/lib/format';
 import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
-import type { Address, Cart } from '@/types';
+import type { Address, BankInfo } from '@/types';
 
 interface CouponResult {
   valid: boolean;
@@ -74,6 +74,14 @@ export default function CheckoutPage() {
     queryFn: () => apiData<{ code: string; name: string; description: string | null; minOrderValue: string; eligible: boolean | null }[]>('/coupons/available'),
   });
 
+  // Phí ship + ngưỡng freeship do admin cấu hình trong trang Cấu hình shop.
+  // Backend đọc cùng nguồn này (lib/shipping.ts) nên số hiển thị = số thu thật.
+  const { data: shop } = useQuery({
+    queryKey: ['bank-info'],
+    queryFn: () => apiData<BankInfo>('/bank-info'),
+    staleTime: 5 * 60 * 1000,
+  });
+
   /* ── Điền sẵn tên/SĐT từ hồ sơ ── */
   useEffect(() => {
     if (user && !form.fullName) setForm((f) => ({ ...f, fullName: user.fullName, phone: user.phone ?? '' }));
@@ -92,9 +100,16 @@ export default function CheckoutPage() {
 
   const selectedAddress = addresses?.find((a) => a.id === addressId) ?? null;
   const subtotal = Number(cart?.subtotal ?? 0);
-  const shippingFee = SHIPPING_LABEL[shippingMethod].fee;
-  const isFreeShip = subtotal >= (cart?.freeShippingThreshold ?? 500000);
-  const effectiveShipping = isFreeShip ? 0 : shippingFee;
+  const shippingFees = shop?.shippingFees ?? {};
+  const shippingFee = Number(shippingFees[shippingMethod] ?? SHIPPING_LABEL[shippingMethod].fee);
+  const freeShipThreshold = shop?.freeShipThreshold ?? cart?.freeShippingThreshold ?? 500000;
+  /**
+   * Chỉ đơn STANDARD được miễn phí ship (đúng như backend tính): trước đây FE
+   * miễn phí cho mọi phương thức nên đơn EXPRESS/INSTANT hiển thị 0đ nhưng
+   * khi đặt lại bị thu tiền ⇒ khách thấy tổng tiền "nhảy".
+   */
+  const isFreeShip = shippingMethod === 'STANDARD' && subtotal >= freeShipThreshold;
+  const effectiveShipping = subtotal <= 0 ? 0 : isFreeShip ? 0 : shippingFee;
   const discount = Number(coupon?.discountAmount ?? 0);
   const total = Math.max(0, subtotal + effectiveShipping - discount);
 
@@ -267,7 +282,11 @@ export default function CheckoutPage() {
               <Truck className="h-4 w-4 text-brand-600" /> Hình thức giao hàng
             </h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {Object.entries(SHIPPING_LABEL).map(([key, value]) => (
+              {Object.entries(SHIPPING_LABEL).map(([key, value]) => {
+                // Phí hiển thị theo cấu hình shop; freeship chỉ áp dụng cho STANDARD
+                const fee = Number(shippingFees[key] ?? value.fee);
+                const free = key === 'STANDARD' && subtotal > 0 && subtotal >= freeShipThreshold;
+                return (
                 <button
                   key={key}
                   onClick={() => setShippingMethod(key as typeof shippingMethod)}
@@ -278,9 +297,10 @@ export default function CheckoutPage() {
                 >
                   <p className="text-sm font-bold">{value.label}</p>
                   <p className="mt-1 text-xs text-ink-500">{value.desc}</p>
-                  <p className="mt-2 text-sm font-bold text-brand-700 dark:text-brand-400">{isFreeShip ? 'Miễn phí' : formatVND(value.fee)}</p>
+                  <p className="mt-2 text-sm font-bold text-brand-700 dark:text-brand-400">{free ? 'Miễn phí' : formatVND(fee)}</p>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </section>
 
