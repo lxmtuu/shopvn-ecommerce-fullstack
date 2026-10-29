@@ -1,11 +1,13 @@
-[README.md](https://github.com/user-attachments/files/32199638/README.md)
-[README.md](https://github.com/user-attachments/files/32199629/README.md)
 # 🛒 ShopVN — E-commerce Fullstack (Next.js + Express + PostgreSQL + Prisma)
 
 Sàn thương mại điện tử full-stack: **Next.js 15 App Router + Express REST API + PostgreSQL 16 + Prisma**,
 có xác thực JWT (refresh-token rotation), phân quyền RBAC, thanh toán **chuyển khoản VietQR tự sinh chuẩn EMVCo**
 với webhook đối soát tự động, quên mật khẩu qua email, đăng nhập Google, và dashboard quản trị có thống kê.
 
+> ▶️ **Xem trước giao diện (không cần cài đặt gì):** **[mở bản chạy thử »](https://3000-inat6gcvn3w6zhe70n59q.e2b.app)**
+> — bản preview dùng dữ liệu mẫu, bấm được cả khu khách hàng lẫn `/admin`.
+> Muốn bản chạy thật trên máy bạn: `bash start-all.sh` rồi mở <http://localhost:3000>.
+>
 > ⚡ **Mới tải về và muốn chạy ngay?** Đọc [`BAT-DAU-O-DAY.md`](BAT-DAU-O-DAY.md) — 3 bước: bật Docker → chạy 1 lệnh setup → nháy đúp `start-all.cmd`.
 >
 > 💻 **Code bằng VS Code?** Đọc [`VSCODE.md`](VSCODE.md) — Tasks + Debug cấu hình sẵn: `Ctrl+Shift+B` để chạy, `F5` để debug có breakpoint.
@@ -19,9 +21,10 @@ với webhook đối soát tự động, quên mật khẩu qua email, đăng nh
 |---|---|
 | Backend API (Express · Prisma · PostgreSQL) | ✅ Chạy thật — đã kiểm thử E2E cả luồng mua hàng + webhook đối soát |
 | Thanh toán VietQR + tự động xác nhận đơn | ✅ Chạy thật (HMAC + chống trùng lặp + transaction Serializable) |
-| Unit test backend | ✅ 36/36 pass · `tsc --noEmit` 0 lỗi |
-| Frontend Next.js 15 | ✅ 29 route, `next build` pass, `tsc --noEmit` 0 lỗi |
-| Tài liệu | ✅ `docs/01` → `docs/07` |
+| Unit test backend | ✅ 43 test (Vitest) · `tsc --noEmit` 0 lỗi · ESLint 0 warning |
+| Frontend Next.js 15 | ✅ 32 route, `next build` pass, `tsc --noEmit` 0 lỗi, ESLint 0 warning |
+| Ảnh giao diện | ✅ 13 ảnh chụp thật trong [`docs/screenshots/`](docs/screenshots) |
+| Tài liệu | ✅ `docs/01` → `docs/08` (kèm báo cáo rà soát) |
 
 ---
 
