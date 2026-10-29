@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { Button, Input, Skeleton } from '@/components/ui';
 import { apiData, ApiError } from '@/lib/api';
 import { formatVND } from '@/lib/format';
-import { useAuthStore } from '@/store/auth.store';
 
 interface Settings {
   siteName: string;
@@ -30,7 +29,6 @@ interface Settings {
 
 export default function AdminSettingsPage() {
   const qc = useQueryClient();
-  const setUser = useAuthStore((s) => s.setUser);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'settings'],

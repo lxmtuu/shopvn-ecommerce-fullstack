@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../lib/prisma.js';
-import { requireAuth } from '../../middlewares/auth.js';
 import { validateBody } from '../../middlewares/validate.js';
 import { resolveCartOwner } from '../../lib/cartOwner.js';
 import { optionalAuth } from '../../middlewares/auth.js';

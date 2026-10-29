@@ -4,7 +4,7 @@ import { AppError } from '../../utils/AppError.js';
 import { buildMeta } from '../../utils/pagination.js';
 import { money } from '../../utils/money.js';
 import { cleanHtml, cleanText } from '../../utils/sanitize.js';
-import { toSlug, toUniqueSlug } from '../../utils/slug.js';
+import { toUniqueSlug } from '../../utils/slug.js';
 import { cache } from '../../lib/redis.js';
 import type { CreateProductInput, ProductQuery, UpdateProductInput } from './products.schema.js';
 

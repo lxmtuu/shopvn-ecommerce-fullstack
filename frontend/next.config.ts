@@ -35,7 +35,8 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  eslint: { ignoreDuringBuilds: true },
+  // Có ESLint thật (eslint.config.mjs) nên để build kiểm tra luôn — lỗi lint chặn release
+  eslint: { ignoreDuringBuilds: false },
 };
 
 export default nextConfig;

@@ -1,0 +1,79 @@
+name: CI
+
+# Kiểm tra tự động cho mọi thay đổi — chặn lỗi "chạy được trên máy tôi" trước khi merge.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (typecheck · lint · test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # Prisma Client cần được generate trước khi typecheck (nếu không, mọi type
+      # Prisma.* đều là any/undefined và tsc báo hàng loạt lỗi giả).
+      - run: npx prisma generate
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  frontend:
+    name: Frontend (typecheck · lint · build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      # Build không cần backend thật: mọi lời gọi API đều chạy ở phía trình duyệt
+      NEXT_PUBLIC_API_URL: /api/v1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+
+  audit:
+    name: Dependency audit (tham khảo, không chặn)
+    runs-on: ubuntu-latest
+    # Không có `continue-on-error` sẽ khiến CI đỏ vì lỗ hổng gián tiếp trong
+    # dependency của dependency — điều ta không sửa được ngay. Vẫn hiển thị để
+    # biết khi nào cần nâng cấp.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Backend
+        working-directory: backend
+        run: npm audit --omit=dev
+      - name: Frontend
+        working-directory: frontend
+        run: npm audit --omit=dev

@@ -11,7 +11,7 @@ import { Button, Input, Skeleton } from '@/components/ui';
 import { useCategories } from '@/hooks/useCategories';
 import { api, apiData, ApiError } from '@/lib/api';
 import { cx, formatVND } from '@/lib/format';
-import type { Brand, Category, ProductDetail } from '@/types';
+import type { Brand, ProductDetail } from '@/types';
 
 interface ImageRow { url: string; cardUrl?: string; thumbUrl?: string; blurData?: string; alt?: string; sortOrder: number }
 interface VariantRow { name: string; sku: string; price: string; salePrice: string; stock: string }

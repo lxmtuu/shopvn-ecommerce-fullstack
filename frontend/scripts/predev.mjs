@@ -23,7 +23,6 @@ if (process.platform === 'win32') {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FRONTEND = path.resolve(HERE, '..');
-const ROOT = path.resolve(FRONTEND, '..');
 
 const useColor = Boolean(process.stdout.isTTY);
 const c = (code) => (useColor ? code : '');

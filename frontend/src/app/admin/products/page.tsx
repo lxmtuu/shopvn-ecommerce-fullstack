@@ -5,14 +5,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Eye, Filter, Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Eye, Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge, Button, Modal, Pagination, Input } from '@/components/ui';
 import { TableSkeleton, TableWrap, Td, Th } from '@/components/admin/AdminTable';
 import { useCategories } from '@/hooks/useCategories';
 import { api, apiData, apiFull, ApiError } from '@/lib/api';
-import { cx, formatDate, formatNumber, formatVND } from '@/lib/format';
-import type { Category, Paginated, ProductCard } from '@/types';
+import { cx, formatNumber, formatVND } from '@/lib/format';
+import type { Paginated, ProductCard } from '@/types';
 
 interface AdminProduct extends ProductCard {
   sku: string;

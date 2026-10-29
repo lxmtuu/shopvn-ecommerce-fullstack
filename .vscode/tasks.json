@@ -1,0 +1,166 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "0. Cài đặt lần đầu (backend + frontend)",
+      "detail": "npm install cho cả hai thư mục",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Cài thư viện: backend", "Cài thư viện: frontend"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Cài thư viện: backend",
+      "type": "shell",
+      "command": "npm install",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Cài thư viện: frontend",
+      "type": "shell",
+      "command": "npm install",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Database: bật (docker compose up)",
+      "type": "shell",
+      "command": "docker compose up -d",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Database: tắt (docker compose down)",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Prisma: generate",
+      "type": "shell",
+      "command": "npm run prisma:generate",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Prisma: migrate deploy",
+      "type": "shell",
+      "command": "npm run prisma:deploy",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Prisma: studio",
+      "type": "shell",
+      "command": "npm run prisma:studio",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Seed dữ liệu mẫu",
+      "type": "shell",
+      "command": "npm run seed",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Chạy backend (API :4000)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Chạy frontend (web :3000)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Chạy cả backend + frontend",
+      "dependsOrder": "parallel",
+      "dependsOn": ["Chạy backend (API :4000)", "Chạy frontend (web :3000)"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Build: backend",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": "build",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Build: frontend",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Typecheck: backend",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": "test",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Typecheck: frontend",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "group": "test",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Lint: backend",
+      "type": "shell",
+      "command": "npm run lint",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Lint: frontend",
+      "type": "shell",
+      "command": "npm run lint",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Test: backend (vitest)",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Kiểm tra: doctor (môi trường)",
+      "type": "shell",
+      "command": "npm run doctor",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Kiểm tra: bảo mật dependency (npm audit)",
+      "type": "shell",
+      "command": "npm audit --omit=dev",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Xem log server",
+      "type": "shell",
+      "command": "bash xem-log.sh",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

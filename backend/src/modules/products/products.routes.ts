@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../../utils/asyncHandler.js';
-import { optionalAuth, requireAuth, requireRole } from '../../middlewares/auth.js';
+import { optionalAuth } from '../../middlewares/auth.js';
 import { validateBody, validateParams, validateQuery } from '../../middlewares/validate.js';
 import { productsController } from './products.controller.js';
 import { bulkActionSchema, createProductSchema, productQuerySchema, updateProductSchema } from './products.schema.js';

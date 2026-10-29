@@ -257,15 +257,12 @@ RESEND_API_KEY=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_CALLBACK_URL=http://localhost:4000/api/v1/auth/google/callback
-FACEBOOK_APP_ID=
-FACEBOOK_APP_SECRET=
 
 # ── THANH TOÁN ───────────────────────────────────────
 BANK_BIN=970436
 BANK_ACCOUNT_NO=0011000123456
 BANK_ACCOUNT_NAME=NGUYEN VAN A
 BANK_NAME=Vietcombank
-BANK_BRANCH=Hoi So
 WEBHOOK_SECRET=<chuỗi bí mật để verify HMAC>
 ORDER_PAYMENT_TTL_MINUTES=1440
 FREE_SHIPPING_THRESHOLD=500000
@@ -279,22 +276,30 @@ UPLOAD_DIR=./uploads
 MAX_FILE_SIZE_MB=5
 PUBLIC_UPLOAD_URL=http://localhost:4000/uploads
 
-# ── SECURITY ─────────────────────────────────────────
+# ── BẢO MẬT / CHỐNG SPAM ────────────────────────────
 BCRYPT_ROUNDS=12
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX=100
-AUTH_RATE_LIMIT_MAX=5
-CSRF_ENABLED=true
+# Cửa sổ & hạn mức rate limit chung (phút / số request mỗi IP)
+RATE_LIMIT_WINDOW_MIN=15
+RATE_LIMIT_MAX=2000
+# Số lần thử đăng nhập tối đa cho mỗi IP + email trong 15 phút
+RATE_LIMIT_LOGIN_MAX=10
+# Số lớp proxy tin cậy: false | 1 (khuyến nghị) | 2, 3…
+TRUST_PROXY=1
+COOKIE_DOMAIN=localhost
+COOKIE_SECURE=false
 
 # ── FRONTEND (đặt trong frontend/.env.local) ─────────
-NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+# /api/v1 = gọi qua proxy same-origin của Next (khuyến nghị, tránh CORS)
+NEXT_PUBLIC_API_URL=/api/v1
+API_PROXY_TARGET=http://127.0.0.1:4000
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SITE_NAME=ShopVN
-NEXT_PUBLIC_FACEBOOK_URL=https://facebook.com/shopvn
-NEXT_PUBLIC_INSTAGRAM_URL=https://instagram.com/shopvn
-NEXT_PUBLIC_TIKTOK_URL=https://tiktok.com/@shopvn
-NEXT_PUBLIC_YOUTUBE_URL=https://youtube.com/@shopvn
 ```
+
+> Danh sách biến ĐẦY ĐỦ và luôn đúng là [`.env.example`](../.env.example) ở thư mục gốc —
+> `backend/src/config/env.ts` validate đúng theo file đó. Các thông tin mạng xã hội
+> (Facebook/Instagram/TikTok/YouTube) nay nhập trong **Admin → Cấu hình shop**, không
+> dùng biến môi trường nữa.
 
 ---
 

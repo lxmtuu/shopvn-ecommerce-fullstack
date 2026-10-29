@@ -4,12 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowRight, BadgeCheck, Gift, Headphones, QrCode, RotateCcw, ShieldCheck, Sparkles, Truck, Zap } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Gift, QrCode, RotateCcw, ShieldCheck, Sparkles, Truck, Zap } from 'lucide-react';
 import { Button, ProductCardSkeleton } from '@/components/ui';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { useCategories } from '@/hooks/useCategories';
 import { apiFull } from '@/lib/api';
-import type { Category, ProductCard as ProductCardType } from '@/types';
+import type { ProductCard as ProductCardType } from '@/types';
 
 const MARQUEE = [
   { icon: Gift, text: 'Nhập WELCOME10 — giảm 10% cho đơn đầu tiên' },

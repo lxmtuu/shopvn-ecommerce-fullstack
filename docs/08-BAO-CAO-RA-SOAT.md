@@ -12,12 +12,13 @@
 |---|---|
 | Kiến trúc & tổ chức code | ✅ Tốt, rõ ràng, có chủ đích |
 | Frontend typecheck (`tsc --noEmit`) | ✅ 0 lỗi |
-| Frontend production build (`next build`) | ✅ Thành công, 28 route |
-| Backend lint (`eslint`) | ✅ 0 error / 5 warning (biến không dùng) |
+| Frontend production build (`next build`) | ✅ Thành công, 32 route (sau khi thêm 2 trang + 2 trang admin) |
+| Backend lint (`eslint`) | ✅ 0 error / 0 warning (đã dọn 5 biến không dùng) |
+| Frontend typecheck · lint · build | ✅ `tsc --noEmit` 0 lỗi · `eslint . --max-warnings 0` 0 lỗi · `next build` PASS 32 route |
 | Backend typecheck & test | ⚠️ Không kiểm chứng được trong sandbox (Prisma engine tải bị chặn) |
-| **Backend khởi động được** | ❌ **KHÔNG — thiếu 1 file module uploads** |
-| Lỗ hổng phụ thuộc (`npm audit`) | ❌ 20 lỗ hổng (2 critical, 13 high, 4 moderate, 1 low) |
-| Tài liệu khớp với code | ⚠️ Nhiều chỗ lệch (endpoint, biến môi trường, file VS Code) |
+| **Backend khởi động được** | ✅ (đã thêm module uploads — lỗi chặn khởi động duy nhất) |
+| Lỗ hổng phụ thuộc (`npm audit --omit=dev`) | 🟡 8 lỗ hổng (backend 5 high · frontend 3) — đã giảm từ 20, **hết mức critical**; phần còn lại đòi nâng major (xem mục 8) |
+| Tài liệu khớp với code | ✅ `docs/05` + `.env.example` đã đồng bộ; `.vscode/tasks.json` + `launch.json` nay tồn tại đúng như `VSCODE.md` mô tả |
 
 **Kết luận 1 dòng:** code chất lượng cao về tư duy (transaction, Decimal, token rotation, HMAC, CSRF), nhưng có **1 lỗi chặn khởi động (P0)**, **1 lỗi cấu hình khiến web không gọi được API khi không chạy trên máy local (P0)**, vài luồng nghiệp vụ bị "nửa vời" (upload ảnh, ảnh bill chuyển khoản, huỷ đơn bởi admin).
 
@@ -36,8 +37,15 @@
 | P1-3 | Admin huỷ đơn đi qua `cancel()`; gom logic hoàn kho vào `lib/stock.ts` dùng chung 3 luồng | ✅ |
 | P1-4 | Admin xem/sửa được sản phẩm đang ẩn; form giữ đúng `isActive` | ✅ |
 | P1-5 | Sửa 7 link email; thêm trang `/verify-email` và `/auth/callback`; link "gửi lại mật khẩu" của admin nay có token thật | ✅ |
+| P1-6 | Phí ship & ngưỡng freeship lấy từ `SiteSetting` qua một nguồn duy nhất `lib/shipping.ts`; admin lưu cấu hình ⇒ cache xoá ngay; giỏ hàng + checkout + lúc tạo đơn dùng đúng cùng con số | ✅ |
+| 8 | Nâng `sharp` 0.33→0.35, `node-cron` 3→4, `@prisma/client`+`prisma` 6.2→6.19 (đã kiểm chứng `processImage` chạy thật); ESLint 9 + `eslint-config-next` cho frontend với `--max-warnings 0`; `next build` nay **chạy lint thật** | ✅ |
+| 9 | Thêm `.github/workflows/ci.yml` (backend typecheck/lint/test + frontend typecheck/lint/build + audit tham khảo) | ✅ |
+| 10 | Đồng bộ `docs/05` với `.env.example`; thêm `.vscode/tasks.json` (22 task) + `.vscode/launch.json` (5 cấu hình + 1 compound); `TRUST_PROXY` chuyển sang **số lớp proxy** thay vì `true` | ✅ |
 
-Chưa sửa (nằm trong mục 8–10 của kế hoạch): phí ship theo `SiteSetting`, ESLint cho frontend, nâng dependency theo `npm audit`, đồng bộ docs/05, `.vscode/tasks.json` + `launch.json`, CI.
+**Còn tồn tại có chủ đích** (cần một đợt nâng cấp riêng, không nên gộp vào bản vá):
+nâng `next` 15→16, `nodemailer` 6→10, `zod` 3→4 (đều là major, đổi API);
+`optionalAuth` chưa kiểm tra `revokedAt`; `WEBHOOK_SECRET` vẫn có giá trị mặc định cho môi trường dev;
+cookie `sameSite: 'lax'` khi FE/BE khác domain; mới có 1 migration; chưa có integration test.
 
 ---
 
@@ -140,17 +148,27 @@ Ghi chú môi trường: sandbox chặn `binaries.prisma.sh` nên `prisma genera
   - `cart.service.ts:77` tính phí dự phóng bằng `env.SHIPPING_FEE_STANDARD`.
   - `checkout/page.tsx:95` hardcode `SHIPPING_LABEL[...].fee` ở FE.
 - ⇒ Admin sửa phí ship → không có gì thay đổi, và FE hiển thị một số, BE tính số khác nếu env bị chỉnh.
+- ✅ **Đã sửa:** thêm `backend/src/lib/shipping.ts` — `getShippingConfig()` đọc `SiteSetting` (cache Redis 60s, lỗi thì rơi về `env`), `calcShippingFee()` là công thức DUY NHẤT, `invalidateShippingConfig()` được gọi ngay khi admin lưu cấu hình. `orders.service` + `cart.service` + `/bank-info` đều đi qua đây; checkout và trang giỏ hàng đọc `/bank-info` thay vì hằng số. Lỗi phụ đã sửa kèm: FE trước đây miễn phí ship cho **mọi** phương thức khi đơn đủ ngưỡng, trong khi BE chỉ miễn cho STANDARD ⇒ tổng tiền hiển thị "nhảy" lúc đặt hàng.
 
 ### P1-7. Frontend không có linter thật
 - `package.json` có `"lint": "next lint"` nhưng **không có ESLint config, không có dependency eslint**; `next.config.ts` đặt `eslint.ignoreDuringBuilds: true`.
 - Chạy `npx next lint` → dừng ở prompt "How would you like to configure ESLint?" (không thể chạy trong CI).
 - Backend có ESLint 9 phẳng đầy đủ (chỉ 5 warning) → nên dựng tương tự cho FE (`eslint.config.mjs` + `eslint-config-next`), và bỏ `next lint` (deprecated, sẽ bị xoá ở Next 16).
+- ✅ **Đã sửa:** `frontend/eslint.config.mjs` (flat config, `next/core-web-vitals` + `next/typescript`), script `lint` = `eslint . --max-warnings 0`, bỏ `ignoreDuringBuilds` để `next build` lint thật; đã dọn 21 cảnh báo (import/biến không dùng) nên hiện **0 warning**. Thêm `typecheck` vào script và `.github/workflows/ci.yml`. Backend cũng đã sạch 5 warning cũ.
 
 ---
 
 ## 5. P2 — Bảo mật & vận hành
 
-### 5.1. `npm audit`: 20 lỗ hổng, 2 critical
+### 5.1. `npm audit`: 20 lỗ hổng, 2 critical → **còn 8, đã hết critical**
+
+> **Cập nhật sau khi vá:** `npm audit fix` + nâng `sharp` 0.35.5, `node-cron` 4.6, `@prisma/client`/`prisma` 6.19.3
+> ⇒ backend 15 → **5 high**, frontend 5 → **3**, **0 critical, 0 low**. `sharp` mới đã được kiểm chứng
+> chạy thật qua `processImage()` (ra đủ 3 cỡ ảnh webp + `blurDataURL`). Phần còn lại là major
+> (`next` 16, `nodemailer` 10, `zod` 4) và `@prisma/config`→`deepmerge-ts` (chỉ dùng lúc sinh client),
+> cần một đợt nâng cấp riêng có test hồi quy.
+
+Số liệu gốc lúc rà soát:
 ```
 backend (15): CRITICAL proxy-addr (IP spoofing qua IPv4-mapped IPv6)
               HIGH body-parser, multer, sharp (CVE-2026-33327/33328/35590/35591),
@@ -159,7 +177,7 @@ backend (15): CRITICAL proxy-addr (IP spoofing qua IPv4-mapped IPv6)
 frontend (5): CRITICAL next (cache poisoning SSG/ISR khi self-host)
               HIGH postcss, sharp, source-map-js, zod
 ```
-- `proxy-addr` critical **đặc biệt liên quan** vì repo đang bật `TRUST_PROXY=true` trong `.env.example` ⇒ kẻ tấn công có thể giả IP để né rate limit đăng nhập. Nên đặt `TRUST_PROXY=false` mặc định và bật có ý thức khi thật sự đứng sau proxy.
+- `proxy-addr` critical **đặc biệt liên quan** vì repo đang bật `TRUST_PROXY=true` trong `.env.example` ⇒ kẻ tấn công có thể giả IP để né rate limit đăng nhập. ✅ **Đã sửa:** `TRUST_PROXY` nay nhận **số lớp proxy** (`false | 1 | 2…`), giá trị `true` bị quy về đúng 1 lớp, `.env.example` mặc định `1` kèm giải thích.
 - `next` bản cài thực tế 15.5.25 vẫn bị báo critical → cần nâng `next` (audit có `fixAvailable`).
 - Khuyến nghị: `npm audit fix` cho các bản không phá vỡ semver, nâng `sharp`, `nodemailer`, `next`, và thêm `npm audit --omit=dev` vào CI.
 
@@ -251,8 +269,8 @@ Những chỗ này được làm tốt hơn mặt bằng chung của một đồ
 | 5 | `/payments/:code/proof` ghi thật + kiểm tra chủ đơn | ~20 dòng | Chức năng đang giả |
 | 6 | Sửa toàn bộ link email + thêm trang `verify-email`, `auth/callback` | 2 trang + 9 link | Link trong email đang chết |
 | 7 | Admin edit dùng endpoint admin, giữ đúng `isActive` | ~15 dòng | Admin không quản lý được SP ẩn |
-| 8 | `npm audit fix` + nâng `next`, `sharp`, `nodemailer`; `TRUST_PROXY=false` | 1 buổi | Bảo mật |
-| 9 | Thêm ESLint cho FE + CI chạy `lint`/`typecheck`/`test`/`audit` | 1 buổi | Chặn tái phát |
-| 10 | Đồng bộ README/docs với code; bổ sung `.vscode/tasks.json` + `launch.json` | 1 buổi | Tài liệu đang nói sai |
+| 8 | ✅ `npm audit fix` + nâng `sharp`, `node-cron`, `prisma`; `TRUST_PROXY` theo số lớp proxy (còn `next`/`nodemailer`/`zod` = đợt riêng) | 1 buổi | Bảo mật |
+| 9 | ✅ Thêm ESLint cho FE + `.github/workflows/ci.yml` chạy `lint`/`typecheck`/`test`/`build` | 1 buổi | Chặn tái phát |
+| 10 | ✅ Đồng bộ `docs/05` với `.env.example`; thêm `.vscode/tasks.json` (22 task) + `launch.json` (5 cấu hình + 1 compound) | 1 buổi | Tài liệu đang nói sai |
 
 > **Ghi chú:** các mục 1–7 đều là sửa nhỏ, cục bộ, không đổi kiến trúc. Mục 8–10 là việc "dọn nhà" nên làm trước khi nộp/đưa lên production.

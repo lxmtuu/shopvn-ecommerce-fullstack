@@ -29,8 +29,28 @@ const EnvSchema = z.object({
   RATE_LIMIT_WINDOW_MIN: z.coerce.number().int().positive().default(15),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(2000),
   RATE_LIMIT_LOGIN_MAX: z.coerce.number().int().positive().default(10),
-  /** Đặt 'true' khi chạy sau nginx/reverse proxy để lấy đúng IP người dùng từ X-Forwarded-For */
-  TRUST_PROXY: z.string().optional().transform((v) => v === 'true' || v === '1').default('false'),
+  /**
+   * Số lớp proxy tin cậy — dùng để lấy đúng IP người dùng từ X-Forwarded-For.
+   *   false / 0 = không tin proxy nào (an toàn nhất khi API lộ trực tiếp)
+   *   1         = tin đúng proxy gần nhất (nginx, proxy rewrite của Next…) ← khuyến nghị
+   *   2, 3…     = chuỗi nhiều lớp proxy (CDN + nginx + app)
+   *
+   * KHÔNG dùng `true` (tin MỌI proxy): kẻ tấn công có thể tự gửi X-Forwarded-For
+   * giả để né rate limit. Ở đây `true` được quy về 1 lớp.
+   */
+  TRUST_PROXY: z
+    .string()
+    .optional()
+    .transform((value, ctx) => {
+      const raw = (value ?? '').trim().toLowerCase();
+      if (!raw || raw === 'false' || raw === '0') return false;
+      if (raw === 'true') return 1;
+      const hops = Number(raw);
+      if (Number.isInteger(hops) && hops > 0) return hops;
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'TRUST_PROXY phải là false, true hoặc số lớp proxy (vd: 1)' });
+      return false;
+    })
+    .default('false'),
   COOKIE_DOMAIN: z.string().default('localhost'),
   // LƯU Ý: KHÔNG dùng z.coerce.boolean() ở đây — nó biến chuỗi "false" thành true
   // (Boolean("false") === true), khiến .env ghi COOKIE_SECURE=false mà cookie vẫn
@@ -81,7 +101,6 @@ const parsed = EnvSchema.safeParse(process.env);
 
 if (!parsed.success) {
   const issues = parsed.error.issues.map((i) => `  • ${i.path.join('.')}: ${i.message}`).join('\n');
-  // eslint-disable-next-line no-console
   console.error(`\n❌ Biến môi trường không hợp lệ:\n${issues}\n\n👉 Xem mẫu trong .env.example và docs/05-SETUP-VA-YEU-CAU.md\n`);
   process.exit(1);
 }

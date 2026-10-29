@@ -6,11 +6,11 @@ import { useQuery } from '@tanstack/react-query';
 import { PackageSearch, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button, EmptyState, Pagination, ProductCardSkeleton, Badge } from '@/components/ui';
 import { ProductCard } from '@/components/shop/ProductCard';
-import { EMPTY_FILTERS, FilterMobileDrawer, FilterSidebar, countActive, type FilterState } from '@/components/shop/FilterPanel';
+import { FilterMobileDrawer, FilterSidebar, countActive, type FilterState } from '@/components/shop/FilterPanel';
 import { useCategories } from '@/hooks/useCategories';
 import { apiFull } from '@/lib/api';
 import { cx, formatNumber } from '@/lib/format';
-import type { Brand, Category, ProductListResponse } from '@/types';
+import type { Brand, ProductListResponse } from '@/types';
 
 const SORTS = [
   { value: 'newest', label: 'Mới nhất' },
