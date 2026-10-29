@@ -94,44 +94,46 @@ khoản VietQR tự động xác nhận**, kèm trang quản trị đầy đủ 
 
 ---
 
-## Ảnh sản phẩm
+## Ảnh giao diện
 
-Bộ **16 ảnh studio 1000×1000** nằm ngay trong repo tại [`frontend/public/img/products/`](frontend/public/img/products) —
-seed dùng đúng các ảnh này nên clone về là có ảnh thật, không phụ thuộc mạng ngoài.
+Ảnh chụp trực tiếp từ giao diện thật (Chrome 1440×900, dữ liệu demo sau `npm run seed`).
+Bấm vào ảnh để xem kích thước đầy đủ — file nằm trong [`docs/screenshots/`](docs/screenshots).
 
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <img src="frontend/public/img/products/phone-1.jpg" width="200" alt="iPhone 15 Pro Max"><br>
-      <sub><b>iPhone 15 Pro Max 256GB</b></sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="frontend/public/img/products/laptop-1.jpg" width="200" alt="MacBook Air M3"><br>
-      <sub><b>MacBook Air M3 13 inch</b></sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="frontend/public/img/products/audio-1.jpg" width="200" alt="Sony WH-1000XM5"><br>
-      <sub><b>Sony WH-1000XM5</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="33%">
-      <img src="frontend/public/img/products/watch-1.jpg" width="200" alt="Apple Watch Series 9"><br>
-      <sub><b>Apple Watch Series 9</b></sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="frontend/public/img/products/home-1.jpg" width="200" alt="Nồi chiên không dầu Philips"><br>
-      <sub><b>Nồi chiên không dầu Philips 6.2L</b></sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="frontend/public/img/products/accessory-4.jpg" width="200" alt="Logitech MX Master 3S"><br>
-      <sub><b>Chuột Logitech MX Master 3S</b></sub>
-    </td>
-  </tr>
-</table>
+### Dành cho khách hàng
 
-<sub>Xem đủ 16 ảnh: [`frontend/public/img/products/`](frontend/public/img/products) — gồm điện thoại (3), laptop (2), tai nghe (2),
-đồng hồ (2), gia dụng (2), phụ kiện (5).</sub>
+| Trang chủ | Danh sách sản phẩm (lọc + sắp xếp) |
+|---|---|
+| [![Trang chủ](docs/screenshots/trang-chu.jpg)](docs/screenshots/trang-chu.jpg) | [![Danh sách sản phẩm](docs/screenshots/danh-sach-san-pham.jpg)](docs/screenshots/danh-sach-san-pham.jpg) |
+
+| Chi tiết sản phẩm (biến thể, tồn kho) | Đánh giá sản phẩm — `?tab=reviews` |
+|---|---|
+| [![Chi tiết sản phẩm](docs/screenshots/chi-tiet-san-pham.jpg)](docs/screenshots/chi-tiet-san-pham.jpg) | [![Đánh giá sản phẩm](docs/screenshots/danh-gia-san-pham.jpg)](docs/screenshots/danh-gia-san-pham.jpg) |
+
+| Giỏ hàng | Thanh toán 3 bước |
+|---|---|
+| [![Giỏ hàng](docs/screenshots/gio-hang.jpg)](docs/screenshots/gio-hang.jpg) | [![Thanh toán](docs/screenshots/thanh-toan.jpg)](docs/screenshots/thanh-toan.jpg) |
+
+| Đăng nhập | Đơn hàng của tôi (timeline trạng thái) |
+|---|---|
+| [![Đăng nhập](docs/screenshots/dang-nhap.jpg)](docs/screenshots/dang-nhap.jpg) | [![Đơn hàng của tôi](docs/screenshots/tai-khoan-don-hang.jpg)](docs/screenshots/tai-khoan-don-hang.jpg) |
+
+### Dành cho quản trị
+
+| Bảng điều khiển KPI | Quản lý sản phẩm |
+|---|---|
+| [![Bảng điều khiển](docs/screenshots/quan-tri-tong-quan.jpg)](docs/screenshots/quan-tri-tong-quan.jpg) | [![Quản lý sản phẩm](docs/screenshots/quan-tri-san-pham.jpg)](docs/screenshots/quan-tri-san-pham.jpg) |
+
+| Quản lý đơn hàng | Cấu hình shop (phí ship, ngân hàng) |
+|---|---|
+| [![Quản lý đơn hàng](docs/screenshots/quan-tri-don-hang.jpg)](docs/screenshots/quan-tri-don-hang.jpg) | [![Cấu hình shop](docs/screenshots/quan-tri-cau-hinh.jpg)](docs/screenshots/quan-tri-cau-hinh.jpg) |
+
+<p align="center">
+  <img src="docs/screenshots/dien-thoai.jpg" width="260" alt="Giao diện di động">
+  <br><em>Giao diện di động — 390px (iPhone 13/14)</em>
+</p>
+
+Bộ **16 ảnh sản phẩm** (1000×1000) mà seed dùng nằm trong [`frontend/public/img/products/`](frontend/public/img/products) —
+không phụ thuộc mạng ngoài.
 
 ---
 
