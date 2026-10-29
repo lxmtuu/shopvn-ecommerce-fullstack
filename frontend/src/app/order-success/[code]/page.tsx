@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCircle2, Copy, Download, Loader2, Package, RefreshCw, Upload, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Skeleton } from '@/components/ui';
-import { api, apiData, ApiError } from '@/lib/api';
+import { api, API_URL, apiData, ApiError } from '@/lib/api';
 import { cx, formatVND } from '@/lib/format';
 import type { PaymentInfo } from '@/types';
 
@@ -61,6 +61,7 @@ export default function OrderSuccessPage() {
       await api(`/payments/${code}/proof`, { method: 'POST', body: { url: uploaded.data.url } });
       setProofUrl(uploaded.data.url);
       toast.success('Đã gửi ảnh xác nhận chuyển khoản');
+      await refetch();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Tải ảnh thất bại');
     } finally {
@@ -97,8 +98,16 @@ export default function OrderSuccessPage() {
     );
   }
 
-  const paid = data.status === 'PAID' || data.orderStatus === 'CONFIRMED' || !['PENDING_PAYMENT'].includes(data.orderStatus);
-  const isCod = !data.qrDataUrl && !data.bank?.accountNo;
+  const method = data.method ?? 'BANK_TRANSFER';
+  const isCod = method === 'COD';
+  const isBankTransfer = method === 'BANK_TRANSFER' && Boolean(data.bank);
+  /**
+   * COD: đơn ở trạng thái CONFIRMED KHÔNG có nghĩa là "đã thanh toán" — tiền chỉ
+   * được thu khi giao hàng. Vì vậy chỉ coi là đã trả khi payment.status = PAID.
+   */
+  const paid = isCod
+    ? data.status === 'PAID'
+    : data.status === 'PAID' || !['PENDING_PAYMENT'].includes(data.orderStatus);
 
   return (
     <div className="container-page max-w-4xl py-10">
@@ -152,7 +161,7 @@ export default function OrderSuccessPage() {
       </div>
 
       {/* ═════ Nội dung thanh toán ═════ */}
-      {paid ? (
+      {!isCod && paid ? (
         <div className="card-surface mt-6 p-6 text-center">
           <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
           <p className="mt-3 font-semibold">Cảm ơn bạn đã mua sắm tại ShopVN!</p>
@@ -175,7 +184,7 @@ export default function OrderSuccessPage() {
             Bạn sẽ thanh toán <b>{formatVND(data.amount)}</b> cho nhân viên giao hàng. Vui lòng kiểm tra kỹ sản phẩm trước khi trả tiền. Đơn hàng đang chờ shop xác nhận.
           </p>
         </div>
-      ) : (
+      ) : isBankTransfer && data.bank ? (
         <div className="mt-6 grid gap-6 lg:grid-cols-[340px_1fr]">
           {/* QR */}
           <div className="card-surface p-6 text-center">
@@ -193,7 +202,7 @@ export default function OrderSuccessPage() {
             </div>
 
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/payments/${data.orderCode}/qr.png`}
+              href={`${API_URL}/payments/${data.orderCode}/qr.png`}
               download={`QR-${data.orderCode}.png`}
               className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:underline"
             >
@@ -206,13 +215,13 @@ export default function OrderSuccessPage() {
             <div className="card-surface p-6">
               <h2 className="font-bold">Thông tin chuyển khoản</h2>
               <dl className="mt-4 divide-y divide-ink-100 dark:divide-ink-800">
-                {[
+                {([
                   ['Ngân hàng', data.bank.name],
                   ['Số tài khoản', data.bank.accountNo],
                   ['Chủ tài khoản', data.bank.accountName],
                   ['Số tiền', formatVND(data.amount)],
-                  ['Nội dung chuyển khoản', data.transferContent],
-                ].map(([label, value]) => (
+                  ['Nội dung chuyển khoản', data.transferContent ?? ''],
+                ] as Array<[string, string]>).map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between gap-3 py-3">
                     <dt className="text-sm text-ink-500">{label}</dt>
                     <dd className="flex items-center gap-2 text-right text-sm font-bold">
@@ -244,16 +253,26 @@ export default function OrderSuccessPage() {
                 </label>
               </div>
 
-              {proofUrl && (
+              {(proofUrl ?? data.proofImageUrl) && (
                 <div className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950/40">
                   <div className="relative h-14 w-14 overflow-hidden rounded-lg">
-                    <Image src={proofUrl} alt="Ảnh bill" fill sizes="56px" className="object-cover" />
+                    <Image src={proofUrl ?? data.proofImageUrl ?? ''} alt="Ảnh bill" fill sizes="56px" className="object-cover" />
                   </div>
                   <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Đã gửi ảnh — shop sẽ xác nhận trong ít phút</p>
                 </div>
               )}
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="card-surface mt-6 p-6">
+          <h2 className="flex items-center gap-2 font-bold">
+            <Wallet className="h-5 w-5 text-brand-600" /> Phương thức: {method}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-400">
+            Đơn hàng đã được ghi nhận với số tiền <b>{formatVND(data.amount)}</b>. Cổng thanh toán cho phương
+            thức này chưa được kích hoạt — shop sẽ liên hệ hướng dẫn thanh toán.
+          </p>
         </div>
       )}
     </div>

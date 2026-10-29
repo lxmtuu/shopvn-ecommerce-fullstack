@@ -81,6 +81,8 @@ export interface Review {
 
 export interface ProductDetail extends Omit<ProductCard, 'thumbnail' | 'thumbUrl' | 'blurData'> {
   sku: string;
+  /** Trạng thái đang bán — admin cần thấy để bật/tắt lại sản phẩm */
+  isActive: boolean;
   shortDesc: string | null;
   description: string | null;
   specs: Record<string, string> | null;
@@ -227,15 +229,19 @@ export interface BankInfo {
 
 export interface PaymentInfo {
   orderCode: string;
+  /** COD | BANK_TRANSFER | VNPAY | MOMO — dùng để chọn UI phù hợp */
+  method?: 'COD' | 'BANK_TRANSFER' | 'VNPAY' | 'MOMO';
   status: string;
   orderStatus: string;
   amount: string;
-  bank: { bin: string; name: string; accountNo: string; accountName: string; branch: string };
-  transferContent: string;
-  qrPayload: string;
-  qrDataUrl: string;
+  /** null với đơn không chuyển khoản (COD…) */
+  bank: { bin: string; name: string; accountNo: string; accountName: string; branch: string } | null;
+  transferContent: string | null;
+  qrPayload: string | null;
+  qrDataUrl: string | null;
   paidAmount: string;
   expiresAt: string | null;
   expired: boolean;
   secondsLeft: number | null;
+  proofImageUrl?: string | null;
 }
