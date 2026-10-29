@@ -61,7 +61,9 @@ export default function AdminProductFormPage() {
       tags: existing.tags.join(', '),
       weightGram: existing.weightGram ? String(existing.weightGram) : '',
       warrantyMonths: existing.warrantyMonths ? String(existing.warrantyMonths) : '12',
-      isActive: true,
+      // Giữ đúng trạng thái hiện tại — trước đây hardcode `true` nên mỗi lần sửa
+      // là vô tình đăng bán lại sản phẩm đang bị ẩn.
+      isActive: existing.isActive,
       isFeatured: existing.isFeatured,
     });
     setImages(existing.images.map((img, i) => ({
