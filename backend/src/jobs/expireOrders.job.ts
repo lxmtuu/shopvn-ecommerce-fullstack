@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
 import { mailer } from '../lib/mailer.js';
 import { env } from '../config/env.js';
+import { restoreStock, linesOfOrderItems } from '../lib/stock.js';
 
 /**
  * Đơn chuyển khoản quá hạn (mặc định 24h) mà chưa thanh toán → HUỶ + HOÀN KHO.
@@ -25,24 +26,12 @@ export async function expireUnpaidOrders() {
   for (const order of orders) {
     try {
       await prisma.$transaction(async (tx) => {
-        // Hoàn kho
-        for (const item of order.items) {
-          if (item.variantId) {
-            await tx.$executeRaw`UPDATE "product_variants" SET "stock" = "stock" + ${item.quantity} WHERE "id" = ${item.variantId}`;
-          }
-          await tx.$executeRaw`UPDATE "products" SET "stock" = "stock" + ${item.quantity} WHERE "id" = ${item.productId}`;
-          await tx.stockMovement.create({
-            data: {
-              productId: item.productId,
-              variantId: item.variantId,
-              change: item.quantity,
-              before: 0,
-              after: item.quantity,
-              reason: 'ORDER_CANCELLED',
-              reference: order.orderCode,
-            },
-          });
-        }
+        // Hoàn kho — dùng chung lib/stock.ts với luồng khách tự huỷ & admin huỷ
+        await restoreStock(tx, linesOfOrderItems(order.items), {
+          reason: 'ORDER_CANCELLED',
+          reference: order.orderCode,
+          userId: null,
+        });
 
         await tx.order.update({
           where: { id: order.id },
@@ -62,7 +51,7 @@ export async function expireUnpaidOrders() {
         orderCode: order.orderCode,
         fullName: order.user.fullName,
         reason: 'Quá hạn thanh toán 24 giờ',
-        link: `${env.CLIENT_URL}/orders/${order.orderCode}`,
+        link: `${env.CLIENT_URL}/account/orders/${order.orderCode}`,
       });
 
       cancelled++;

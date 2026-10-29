@@ -34,11 +34,27 @@ router.post(
   asyncHandler(async (req, res) => ok(res, await paymentsService.confirmTransfer(p(req.params.orderCode), req.user!.id))),
 );
 
-/** Upload ảnh bill chuyển khoản (khách hoặc admin) */
+/**
+ * Gửi ảnh bill chuyển khoản (khách hoặc admin).
+ * `url` phải là URL do `/uploads/image` trả về — validate để tránh lưu chuỗi rác
+ * hoặc javascript: vào DB rồi render thẳng ra HTML.
+ */
 router.post(
   '/:orderCode/proof',
   requireAuth,
-  asyncHandler(async (req, res) => ok(res, { url: (req.body as { url: string }).url }, 'Đã gửi ảnh xác nhận')),
+  validateBody(z.object({ url: z.string().url('Đường dẫn ảnh không hợp lệ').max(500) })),
+  asyncHandler(async (req, res) =>
+    ok(
+      res,
+      await paymentsService.attachProof(
+        p(req.params.orderCode),
+        req.user!.id,
+        req.user!.role === 'ADMIN',
+        req.body.url,
+      ),
+      'Đã gửi ảnh xác nhận chuyển khoản',
+    ),
+  ),
 );
 
 export const adminPaymentRoutes = Router();

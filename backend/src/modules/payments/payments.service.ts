@@ -18,8 +18,32 @@ export const paymentsService = {
     });
     if (!order) throw AppError.notFound('Không tìm thấy đơn hàng');
     if (!isAdmin && order.userId !== userId) throw AppError.notFound('Không tìm thấy đơn hàng');
-    if (order.paymentMethod !== 'BANK_TRANSFER') throw AppError.badRequest('Đơn hàng này không thanh toán bằng chuyển khoản');
     if (!order.payment) throw AppError.notFound('Không tìm thấy thông tin thanh toán');
+
+    /**
+     * Đơn KHÔNG chuyển khoản (COD, về sau là VNPay/MoMo) vẫn phải trả về thông tin
+     * tóm tắt — trước đây ném 400 nên trang `/order-success` của đơn COD hiện
+     * "Không tìm thấy đơn hàng" ngay sau khi khách đặt hàng thành công.
+     */
+    if (order.paymentMethod !== 'BANK_TRANSFER') {
+      return {
+        orderCode: order.orderCode,
+        method: order.paymentMethod,
+        status: order.payment.status,
+        orderStatus: order.status,
+        amount: money(order.totalAmount),
+        bank: null,
+        transferContent: null,
+        qrPayload: null,
+        qrDataUrl: null,
+        paidAmount: money(order.payment.paidAmount),
+        expiresAt: null,
+        expired: false,
+        secondsLeft: null,
+        gatewayRef: order.payment.gatewayRef,
+        proofImageUrl: order.payment.proofImageUrl,
+      };
+    }
 
     const amount = Math.round(Number(order.totalAmount.toString()));
     const qrPayload =
@@ -43,6 +67,7 @@ export const paymentsService = {
 
     return {
       orderCode: order.orderCode,
+      method: order.paymentMethod,
       status: order.payment.status,
       orderStatus: order.status,
       amount: money(order.totalAmount),
@@ -116,6 +141,65 @@ export const paymentsService = {
     return { status: 'PENDING_REVIEW' as const, message: 'Đã ghi nhận! Shop sẽ kiểm tra và xác nhận trong thời gian sớm nhất.' };
   },
 
+  /**
+   * Khách gửi ẢNH BILL chuyển khoản.
+   * Trước đây endpoint này chỉ echo lại URL (không lưu gì) ⇒ admin không bao giờ
+   * thấy bill. Nay: kiểm tra chủ đơn → lưu URL vào payment → chuyển trạng thái
+   * sang "chờ duyệt" để admin đối soát → báo cho admin.
+   */
+  async attachProof(orderCode: string, userId: string, isAdmin: boolean, proofUrl: string) {
+    const order = await prisma.order.findUnique({ where: { orderCode }, include: { payment: true } });
+    if (!order) throw AppError.notFound('Không tìm thấy đơn hàng');
+    if (!isAdmin && order.userId !== userId) throw AppError.notFound('Không tìm thấy đơn hàng');
+    if (!order.payment) throw AppError.notFound('Không tìm thấy thông tin thanh toán');
+
+    if (order.payment.status === 'PAID') {
+      throw AppError.conflict('Đơn hàng đã được xác nhận thanh toán, không cần gửi bill nữa');
+    }
+    if (order.status === 'CANCELLED') {
+      throw AppError.conflict('Đơn hàng đã bị huỷ, không thể gửi ảnh thanh toán', 'INVALID_STATUS_TRANSITION');
+    }
+
+    // Giữ nguyên UNDERPAID (đã biết chuyển thiếu) — còn lại chuyển sang chờ duyệt
+    const nextPaymentStatus = order.payment.status === 'UNDERPAID' ? 'UNDERPAID' : 'PENDING_REVIEW';
+
+    await prisma.$transaction([
+      prisma.payment.update({
+        where: { id: order.payment.id },
+        data: { proofImageUrl: proofUrl, status: nextPaymentStatus },
+      }),
+      prisma.order.update({
+        where: { id: order.id },
+        data: {
+          paymentStatus: nextPaymentStatus,
+          history: {
+            create: {
+              status: order.status,
+              note: 'Khách đã gửi ảnh bill chuyển khoản — chờ shop đối soát',
+              changedBy: userId,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const admins = await prisma.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' }, select: { id: true } });
+    if (admins.length) {
+      await prisma.notification.createMany({
+        data: admins.map((a) => ({
+          userId: a.id,
+          type: 'PAYMENT' as const,
+          title: `Đơn ${order.orderCode} có ảnh bill chuyển khoản`,
+          body: `Khách báo đã chuyển ${money(order.totalAmount)}đ — mở đơn để xem bill và xác nhận.`,
+          link: `/admin/orders/${order.id}`,
+        })),
+      });
+    }
+
+    logger.info({ orderCode, userId }, '🧾 Khách gửi ảnh bill chuyển khoản');
+    return { url: proofUrl, paymentStatus: nextPaymentStatus };
+  },
+
   /** Admin xác nhận thanh toán thủ công (kèm ảnh bill tuỳ chọn) */
   async manualConfirm(orderId: string, adminId: string, paidAmount?: number, proofImageUrl?: string, note?: string) {
     const order = await prisma.order.findUnique({ where: { id: orderId }, include: { payment: true, user: true, items: true } });
@@ -161,7 +245,7 @@ export const paymentsService = {
         orderCode: order.orderCode,
         fullName: order.user.fullName,
         amount: money(amount),
-        link: `${env.CLIENT_URL}/orders/${order.orderCode}`,
+        link: `${env.CLIENT_URL}/account/orders/${order.orderCode}`,
       });
     }
 
@@ -270,7 +354,7 @@ export const paymentsService = {
         orderCode: order.orderCode,
         fullName: order.user.fullName,
         amount: money(newPaid),
-        link: `${env.CLIENT_URL}/orders/${order.orderCode}`,
+        link: `${env.CLIENT_URL}/account/orders/${order.orderCode}`,
       });
     } else {
       // Chuyển thiếu → cảnh báo admin

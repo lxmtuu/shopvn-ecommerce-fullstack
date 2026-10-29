@@ -10,6 +10,7 @@ import { logger } from '../../lib/logger.js';
 import { buildMeta, parsePagination } from '../../utils/pagination.js';
 import { CANCELLABLE_BY_CUSTOMER, ORDER_TRANSITIONS, SHIPPING_FEE } from '../../config/constants.js';
 import { validateCoupon } from '../coupons/coupons.service.js';
+import { restoreStock, linesOfOrderItems } from '../../lib/stock.js';
 import type { CreateOrderInput, OrderQuery } from './orders.schema.js';
 
 const ITEM_SNAPSHOT_INCLUDE = {
@@ -336,7 +337,7 @@ export const ordersService = {
       shippingFee: order.shippingFee.toString(),
       discountAmount: order.discountAmount.toString(),
       totalAmount: order.totalAmount.toString(),
-      link: `${env.CLIENT_URL}/orders/${order.orderCode}`,
+      link: `${env.CLIENT_URL}/account/orders/${order.orderCode}`,
     };
 
     if (order.paymentMethod === 'BANK_TRANSFER') {
@@ -348,7 +349,7 @@ export const ordersService = {
         accountNo: env.BANK_ACCOUNT_NO,
         accountName: env.BANK_ACCOUNT_NAME,
         content: order.orderCode,
-        link: `${env.CLIENT_URL}/checkout/success/${order.orderCode}`,
+        link: `${env.CLIENT_URL}/order-success/${order.orderCode}`,
         expiresAt: order.paymentDueAt?.toLocaleString('vi-VN') ?? '24 giờ',
       });
     } else {
@@ -439,25 +440,12 @@ export const ordersService = {
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      // Hoàn kho
-      for (const item of order.items) {
-        if (item.variantId) {
-          await tx.$executeRaw`UPDATE "product_variants" SET "stock" = "stock" + ${item.quantity} WHERE "id" = ${item.variantId}`;
-        }
-        await tx.$executeRaw`UPDATE "products" SET "stock" = "stock" + ${item.quantity} WHERE "id" = ${item.productId}`;
-        await tx.stockMovement.create({
-          data: {
-            productId: item.productId,
-            variantId: item.variantId,
-            userId,
-            change: item.quantity,
-            before: 0,
-            after: item.quantity,
-            reason: 'ORDER_CANCELLED',
-            reference: orderCode,
-          },
-        });
-      }
+      // Hoàn kho (dùng chung lib/stock.ts để mọi luồng huỷ đều nhất quán)
+      await restoreStock(tx, linesOfOrderItems(order.items), {
+        reason: 'ORDER_CANCELLED',
+        reference: orderCode,
+        userId,
+      });
 
       await tx.payment.updateMany({
         where: { orderId: order.id, status: { in: ['UNPAID', 'PENDING_REVIEW'] } },
@@ -470,7 +458,15 @@ export const ordersService = {
           status: 'CANCELLED',
           cancelledAt: new Date(),
           cancelReason: reason,
-          history: { create: { status: 'CANCELLED', note: reason, changedBy: userId } },
+          // Chỉ đánh dấu FAILED khi chưa thu được tiền — đơn đã PAID sẽ được hoàn tiền riêng
+          ...(order.paymentStatus === 'PAID' ? {} : { paymentStatus: 'FAILED' as const }),
+          history: {
+            create: {
+              status: 'CANCELLED',
+              note: reason,
+              changedBy: userId,
+            },
+          },
         },
         include: detailInclude,
       });
@@ -484,7 +480,7 @@ export const ordersService = {
         order.paymentStatus === 'PAID' || order.paymentStatus === 'PENDING_REVIEW'
           ? 'Chúng tôi sẽ hoàn tiền trong 1–3 ngày làm việc.'
           : undefined,
-      link: `${env.CLIENT_URL}/orders/${order.orderCode}`,
+      link: `${env.CLIENT_URL}/account/orders/${order.orderCode}`,
     });
 
     return serializeOrder(updated);
@@ -624,6 +620,30 @@ export const ordersService = {
       );
     }
 
+    /**
+     * Huỷ đơn phải đi qua cancel(): hoàn kho + đánh dấu payment FAILED + email cho khách.
+     * Trước đây nhánh này chỉ set status/cancelledAt ⇒ hàng bị giữ trong kho vĩnh viễn.
+     */
+    if (newStatus === 'CANCELLED') {
+      const cancelled = await this.cancel(
+        order.orderCode,
+        adminId,
+        note?.trim() || 'Shop huỷ đơn',
+        true,
+      );
+      await prisma.auditLog.create({
+        data: {
+          userId: adminId,
+          action: 'order.status_update',
+          entity: 'Order',
+          entityId: orderId,
+          before: { status: order.status },
+          after: { status: 'CANCELLED', note },
+        },
+      });
+      return cancelled;
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
       const data: Prisma.OrderUpdateInput = {
         status: newStatus as Prisma.EnumOrderStatusFieldUpdateOperationsInput,
@@ -632,7 +652,6 @@ export const ordersService = {
       if (newStatus === 'CONFIRMED') data.confirmedAt = new Date();
       if (newStatus === 'SHIPPING') data.shippedAt = new Date();
       if (newStatus === 'DELIVERED') data.deliveredAt = new Date();
-      if (newStatus === 'CANCELLED') data.cancelledAt = new Date();
 
       return tx.order.update({ where: { id: orderId }, data, include: detailInclude });
     });
@@ -643,15 +662,7 @@ export const ordersService = {
         orderCode: order.orderCode,
         fullName: order.user.fullName,
         trackingCode: updated.trackingCode ?? undefined,
-        link: `${env.CLIENT_URL}/orders/${order.orderCode}`,
-      });
-    }
-    if (newStatus === 'CANCELLED') {
-      void mailer.orderCancelled(order.user.email, {
-        orderCode: order.orderCode,
-        fullName: order.user.fullName,
-        reason: note,
-        link: `${env.CLIENT_URL}/orders/${order.orderCode}`,
+        link: `${env.CLIENT_URL}/account/orders/${order.orderCode}`,
       });
     }
     if (newStatus === 'DELIVERED') {
