@@ -318,13 +318,13 @@ Base URL: `/api/v1` · Tài liệu tương tác: **http://localhost:4000/api/doc
 | `categories` · `brands` | `GET /categories` (dạng cây) · `/categories/:slug` · `GET /brands` |
 | `cart` | `GET /cart` · `POST /cart/items` · `PATCH /cart/items/:id` · `DELETE /cart/items/:id` · `POST /cart/merge` |
 | `wishlist` · `addresses` | `GET/POST/DELETE /wishlist` · CRUD `/addresses` |
-| `orders` | `POST /orders` · `GET /orders` · `GET /orders/:code` · `PATCH /orders/:code/cancel` · `POST /orders/:code/repurchase` |
+| `orders` | `POST /orders` · `GET /orders` · `GET /orders/:code` · `POST /orders/:code/cancel` · `POST /orders/:code/reorder` · `POST /orders/:code/return` |
 | `payments` | `GET /payments/:orderCode/qr.png` · trạng thái thanh toán · xác nhận thủ công (admin) |
-| `reviews` | `GET /products/:slug/reviews` · `POST /reviews` · duyệt đánh giá (admin) |
+| `reviews` | `GET /reviews?productId=` · `POST /reviews` · duyệt đánh giá (admin) |
 | `coupons` | `GET /coupons/available` · kiểm tra mã giảm giá |
 | `webhooks` | `POST /webhooks/bank` — ngân hàng báo có, **xác thực HMAC-SHA256**, chống trùng lặp |
 | `admin` | 19 endpoint: thống kê, quản lý sản phẩm/đơn/người dùng/đánh giá/mã giảm giá, cấu hình shop, audit log, export CSV |
-| `uploads` | `POST /uploads` (ảnh, đã resize + tước EXIF) · `DELETE /uploads` |
+| `uploads` | `POST /uploads/image` (1 ảnh) · `POST /uploads/images` (nhiều ảnh — field `files` hoặc `images`) · `DELETE /uploads` (admin) — ảnh đã resize 3 cỡ + tước EXIF |
 
 **Chuẩn phản hồi:**
 
