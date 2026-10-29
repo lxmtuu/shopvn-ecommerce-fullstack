@@ -61,8 +61,21 @@ async function main() {
   // ── 2. .env.local ────────────────────────────────────────────────────────
   const envLocal = path.join(FRONTEND, '.env.local');
   if (!fs.existsSync(envLocal)) {
-    warn('Thiếu frontend/.env.local — web có thể gọi sai địa chỉ API.');
-    warn('Tạo lại:  nháy đúp setup-windows.cmd   (hoặc  bash setup-gitbash.sh )');
+    // Tự tạo — đây là file cấu hình dev, KHÔNG chứa bí mật và đã nằm trong .gitignore.
+    // Nhờ vậy `npm run dev` chạy được ngay cả khi người dùng bỏ qua bước setup.
+    const content = [
+      '# === ShopVN - cau hinh giao dien web ===',
+      '# Goi API qua proxy same-origin cua Next (next.config.ts -> API_PROXY_TARGET).',
+      '# KHONG doi thanh http://localhost:4000/api/v1 tru khi ban that su muon goi',
+      '# thang backend khac origin (se dinh CORS + khong gui duoc cookie).',
+      'NEXT_PUBLIC_API_URL=/api/v1',
+      'API_PROXY_TARGET=http://127.0.0.1:4000',
+      'NEXT_PUBLIC_SITE_URL=http://localhost:3000',
+      'NEXT_PUBLIC_SITE_NAME=ShopVN',
+      '',
+    ].join('\n');
+    fs.writeFileSync(envLocal, content, 'utf8');
+    ok('Đã tự tạo frontend/.env.local (API qua proxy /api/v1)');
   } else {
     const txt = fs.readFileSync(envLocal, 'utf8');
     const apiUrl = (/^\s*NEXT_PUBLIC_API_URL\s*=\s*(.*)$/m.exec(txt)?.[1] || '').trim();

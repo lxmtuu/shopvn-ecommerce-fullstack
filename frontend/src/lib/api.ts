@@ -5,7 +5,14 @@
  *  • Tự refresh token khi gặp 401 TOKEN_EXPIRED rồi thử lại request 1 lần
  *  • Ném ApiError có `code` + `errors` để form hiển thị lỗi theo từng field
  */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+/**
+ * MẶC ĐỊNH: gọi qua proxy same-origin của Next (`/api/v1` → `next.config.ts` rewrites
+ * sang backend). Nhờ vậy cookie httpOnly + CSRF hoạt động y như production và web
+ * chạy được trên MỌI tên miền/cổng (LAN IP, preview, tunnel) mà không dính CORS.
+ * Chỉ đặt NEXT_PUBLIC_API_URL thành URL tuyệt đối khi bạn thật sự muốn gọi thẳng
+ * backend khác origin (nhớ khớp CORS_ORIGIN + COOKIE_DOMAIN bên backend).
+ */
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? 'ShopVN';
 

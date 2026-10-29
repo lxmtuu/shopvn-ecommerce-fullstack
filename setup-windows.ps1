@@ -135,6 +135,27 @@ if ($LASTEXITCODE -ne 0) {
   Stop-Here 'Khong chuan hoa duoc backend\.env. Thu chay tay:  cd backend  ->  node scripts/bootstrap-env.mjs'
 }
 
+# frontend\.env.local - KHONG commit (da gitignore) nen phai tao tai day.
+# NEXT_PUBLIC_API_URL=/api/v1  => web goi API qua proxy same-origin cua Next,
+# nho vay cookie httpOnly + CSRF hoat dong va web chay duoc tren moi ten mien/cong.
+$envLocal = Join-Path $frontend '.env.local'
+if (Test-Path $envLocal) {
+  Ok 'frontend\.env.local da co - giu nguyen'
+} else {
+  $envLocalContent = @'
+# === ShopVN - cau hinh giao dien web ===
+# Goi API qua proxy same-origin cua Next (next.config.ts -> API_PROXY_TARGET).
+# KHONG doi thanh http://localhost:4000/api/v1 tru khi ban that su muon goi
+# thang backend khac origin (se dinh CORS + khong gui duoc cookie).
+NEXT_PUBLIC_API_URL=/api/v1
+API_PROXY_TARGET=http://127.0.0.1:4000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_NAME=ShopVN
+'@
+  Set-Content -Path $envLocal -Value $envLocalContent -Encoding utf8
+  Ok 'Da tao frontend\.env.local (API qua proxy /api/v1)'
+}
+
 # ---------------------------- 5. npm install ----------------------------
 Step '5/7  Cai thu vien (npm install) - mat khoang 1-3 phut'
 $installArgs = @('install', '--no-audit', '--no-fund')

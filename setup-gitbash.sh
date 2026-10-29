@@ -107,6 +107,26 @@ step "4/7  Chuẩn hoá backend/.env và sinh khoá bí mật"
 cd "$BACKEND" || die "Không cd được vào backend"
 node scripts/bootstrap-env.mjs || die "Không chuẩn hoá được backend/.env. Chạy tay để xem lỗi:  cd backend && node scripts/bootstrap-env.mjs"
 
+# frontend/.env.local — KHÔNG commit (đã gitignore) nên phải tạo tại đây.
+# NEXT_PUBLIC_API_URL=/api/v1 ⇒ web gọi API qua proxy same-origin của Next,
+# nhờ vậy cookie httpOnly + CSRF hoạt động và web chạy được trên mọi tên miền/cổng.
+ENV_LOCAL="$FRONTEND/.env.local"
+if [ -f "$ENV_LOCAL" ]; then
+  ok "frontend/.env.local đã có — giữ nguyên"
+else
+  cat > "$ENV_LOCAL" <<'ENVEOF'
+# ═══ ShopVN — cấu hình giao diện web ═══
+# Gọi API qua proxy same-origin của Next (next.config.ts → API_PROXY_TARGET).
+# KHÔNG đổi thành http://localhost:4000/api/v1 trừ khi bạn thật sự muốn gọi
+# thẳng backend khác origin (sẽ dính CORS + không gửi được cookie).
+NEXT_PUBLIC_API_URL=/api/v1
+API_PROXY_TARGET=http://127.0.0.1:4000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_NAME=ShopVN
+ENVEOF
+  ok "Đã tạo frontend/.env.local (API qua proxy /api/v1)"
+fi
+
 # ─────────────────── 5. npm install ───────────────────
 step "5/7  Cài thư viện (npm install) — mất khoảng 1–3 phút"
 printf '  %s> backend ...%s\n' "$D" "$N"
