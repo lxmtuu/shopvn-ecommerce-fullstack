@@ -4,9 +4,12 @@ Sàn thương mại điện tử full-stack: **Next.js 15 App Router + Express R
 có xác thực JWT (refresh-token rotation), phân quyền RBAC, thanh toán **chuyển khoản VietQR tự sinh chuẩn EMVCo**
 với webhook đối soát tự động, quên mật khẩu qua email, đăng nhập Google, và dashboard quản trị có thống kê.
 
-> ▶️ **Xem trước giao diện (không cần cài đặt gì):** **[mở bản chạy thử »](https://3000-inat6gcvn3w6zhe70n59q.e2b.app)**
-> — bản preview dùng dữ liệu mẫu, bấm được cả khu khách hàng lẫn `/admin`.
-> Muốn bản chạy thật trên máy bạn: `bash start-all.sh` rồi mở <http://localhost:3000>.
+> ▶️ **Xem trước giao diện (không cần cài đặt gì):** **[mở bản chạy thử trên Vercel »](https://shopvn-demo-neyus-projects-183b1dff.vercel.app)**
+> — bản demo chỉ có frontend + dữ liệu mẫu, bấm được cả khu khách hàng lẫn `/admin`
+> (đăng nhập bằng **bất kỳ email/mật khẩu nào**).
+> Muốn bản chạy thật (đặt hàng, thanh toán, email…): `bash start-all.sh` rồi mở <http://localhost:3000>.
+>
+> ℹ️ Bản demo chạy bằng `/demo-api` (bật qua `DEMO_MODE=1`), không cần database nên **không lưu** giỏ hàng/đơn hàng.
 >
 > ⚡ **Mới tải về và muốn chạy ngay?** Đọc [`BAT-DAU-O-DAY.md`](BAT-DAU-O-DAY.md) — 3 bước: bật Docker → chạy 1 lệnh setup → nháy đúp `start-all.cmd`.
 >
