@@ -41,11 +41,13 @@
 | 8 | Nâng `sharp` 0.33→0.35, `node-cron` 3→4, `@prisma/client`+`prisma` 6.2→6.19 (đã kiểm chứng `processImage` chạy thật); ESLint 9 + `eslint-config-next` cho frontend với `--max-warnings 0`; `next build` nay **chạy lint thật** | ✅ |
 | 9 | Thêm `.github/workflows/ci.yml` (backend typecheck/lint/test + frontend typecheck/lint/build + audit tham khảo) | ✅ |
 | 10 | Đồng bộ `docs/05` với `.env.example`; thêm `.vscode/tasks.json` (22 task) + `.vscode/launch.json` (5 cấu hình + 1 compound); `TRUST_PROXY` chuyển sang **số lớp proxy** thay vì `true` | ✅ |
+| 11 | `optionalAuth` kiểm tra `session.revokedAt` (sau đăng xuất, access token cũ không còn được coi là đã đăng nhập); `env.ts` **chặn production dùng secret mẫu** + chặn `JWT_ACCESS_SECRET === JWT_REFRESH_SECRET`; Swagger bổ sung `/uploads/image`, `/uploads/images`, `DELETE /uploads`, `/bank-info` | ✅ |
 
 **Còn tồn tại có chủ đích** (cần một đợt nâng cấp riêng, không nên gộp vào bản vá):
 nâng `next` 15→16, `nodemailer` 6→10, `zod` 3→4 (đều là major, đổi API);
-`optionalAuth` chưa kiểm tra `revokedAt`; `WEBHOOK_SECRET` vẫn có giá trị mặc định cho môi trường dev;
-cookie `sameSite: 'lax'` khi FE/BE khác domain; mới có 1 migration; chưa có integration test.
+`WEBHOOK_SECRET` vẫn có giá trị mặc định **cho môi trường dev** (production đã bị chặn nếu còn là giá trị mẫu);
+cookie `sameSite: 'lax'` khi FE/BE khác domain; mới có 1 migration; chưa có integration test;
+`.vscode/*.json` mới thêm nên **cần commit** — `.gitignore` đã được mở ngoại lệ.
 
 ---
 

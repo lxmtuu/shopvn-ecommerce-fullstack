@@ -296,6 +296,10 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SITE_NAME=ShopVN
 ```
 
+> ⚠️ **Production:** `env.ts` sẽ TỪ CHỐI khởi động nếu `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` /
+> `WEBHOOK_SECRET` vẫn là giá trị mẫu (`thay_bang…`, `change_me…`, `dev-webhook-secret`), hoặc nếu hai
+> JWT secret giống nhau. Sinh bằng: `openssl rand -hex 32`.
+>
 > Danh sách biến ĐẦY ĐỦ và luôn đúng là [`.env.example`](../.env.example) ở thư mục gốc —
 > `backend/src/config/env.ts` validate đúng theo file đó. Các thông tin mạng xã hội
 > (Facebook/Instagram/TikTok/YouTube) nay nhập trong **Admin → Cấu hình shop**, không

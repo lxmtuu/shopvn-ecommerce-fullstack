@@ -95,7 +95,40 @@ const EnvSchema = z.object({
   SEED_ADMIN_PASSWORD: z.string().default('Admin@123456'),
   SEED_USER_EMAIL: z.string().default('customer@shop.vn'),
   SEED_USER_PASSWORD: z.string().default('Customer@123456'),
-});
+})
+  /**
+   * Chặn "chạy production với secret mẫu". Trước đây các giá trị placeholder trong
+   * .env.example (vd: 'thay_bang_chuoi_hex_128_ky_tu_1' dài 34 ký tự) VƯỢT qua
+   * kiểm tra min(32) ⇒ app production vẫn khởi động với secret ai cũng biết.
+   */
+  .superRefine((val, ctx) => {
+    if (val.NODE_ENV !== 'production') return;
+
+    const placeholders = [/^thay[_-]?bang/i, /^change[_-]?me/i, /^your[_-]?secret/i, /^dev[-_]/i];
+    const secrets = [
+      ['JWT_ACCESS_SECRET', val.JWT_ACCESS_SECRET],
+      ['JWT_REFRESH_SECRET', val.JWT_REFRESH_SECRET],
+      ['WEBHOOK_SECRET', val.WEBHOOK_SECRET],
+    ] as const;
+
+    for (const [key, value] of secrets) {
+      if (value === 'dev-webhook-secret' || placeholders.some((re) => re.test(value))) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: `${key} vẫn là giá trị mẫu — production BẮT BUỘC dùng chuỗi ngẫu nhiên riêng (vd: openssl rand -hex 32)`,
+        });
+      }
+    }
+
+    if (val.JWT_ACCESS_SECRET === val.JWT_REFRESH_SECRET) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['JWT_REFRESH_SECRET'],
+        message: 'JWT_REFRESH_SECRET phải KHÁC JWT_ACCESS_SECRET (lộ một cái không kéo theo cái còn lại)',
+      });
+    }
+  });
 
 const parsed = EnvSchema.safeParse(process.env);
 

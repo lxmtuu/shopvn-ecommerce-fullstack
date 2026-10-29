@@ -152,6 +152,58 @@ Với client khác (mobile/Postman), dùng header \`Authorization: Bearer <acces
     '/payments/{orderCode}/info': { get: { tags: ['Payments'], summary: 'Thông tin chuyển khoản + QR (data URL)', parameters: [{ name: 'orderCode', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'OK' } } } },
     '/payments/{orderCode}/qr.png': { get: { tags: ['Payments'], summary: 'Ảnh QR PNG để tải về / in', security: [], parameters: [{ name: 'orderCode', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'PNG' } } } },
     '/payments/{orderCode}/confirm-transfer': { post: { tags: ['Payments'], summary: 'Khách báo đã chuyển khoản', parameters: [{ name: 'orderCode', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'OK' } } } },
+    '/bank-info': { get: { tags: ['Payments'], summary: 'Thông tin ngân hàng + phí ship của shop (công khai, dùng cho trang thanh toán)', security: [], responses: { 200: { description: 'OK' } } } },
+    '/uploads/image': {
+      post: {
+        tags: ['Uploads'],
+        summary: 'Tải 1 ảnh (avatar, ảnh bill chuyển khoản, ảnh đánh giá) — cần đăng nhập',
+        description: 'Ảnh được resize ra 3 cỡ (full/card/thumb) dạng webp, tước EXIF, sinh `blurData` để hiển thị dần. Giới hạn dung lượng theo `MAX_FILE_SIZE_MB`.',
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                required: ['file'],
+                properties: { file: { type: 'string', format: 'binary' } },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: 'Trả `{ url, cardUrl, thumbUrl, blurData, width, height }`' }, 400: { description: 'Thiếu file / sai định dạng / quá dung lượng' }, 401: { description: 'Chưa đăng nhập' }, 429: { description: 'Tải lên quá nhiều' } },
+      },
+    },
+    '/uploads/images': {
+      post: {
+        tags: ['Uploads'],
+        summary: 'Tải nhiều ảnh (thư viện ảnh sản phẩm) — tối đa 10 ảnh',
+        description: 'Nhận field `files` hoặc `images`. Ảnh được xử lý LẦN LƯỢT để không ngốn RAM.',
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  files: { type: 'array', items: { type: 'string', format: 'binary' }, maxItems: 10 },
+                  images: { type: 'array', items: { type: 'string', format: 'binary' }, maxItems: 10 },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: 'Mảng ảnh đã xử lý' }, 400: { description: 'Thiếu file' }, 401: { description: 'Chưa đăng nhập' } },
+      },
+    },
+    '/uploads': {
+      delete: {
+        tags: ['Uploads'],
+        summary: 'Xoá ảnh đã tải lên (ADMIN)',
+        description: 'Chỉ xoá được file nằm trong `PUBLIC_UPLOAD_URL` — chặn việc dùng endpoint để dò/xoá file ngoài thư mục upload.',
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['url'], properties: { url: { type: 'string', format: 'uri' } } } } } },
+        responses: { 200: { description: 'Đã xoá' }, 403: { description: 'Không phải ADMIN' }, 404: { description: 'File không tồn tại' } },
+      },
+    },
     '/webhooks/bank': {
       post: {
         tags: ['Webhooks'], summary: 'Callback ngân hàng (Casso/SePay) — tự động xác nhận thanh toán',
